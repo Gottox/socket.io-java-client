@@ -70,6 +70,9 @@ Create a class implementing the IOTransport interface.
 
 ### IOTransport
 
+#### public static final Object TRANSPORT_NAME
+This constant should contain the name of the transport.
+
 #### static IOTransport create(URL url, IOConnection connection)
  
 Called by IOConnector to create a new Instance of the transport. The URL is the one you should connect to. Here you can rewrite the
@@ -98,8 +101,8 @@ Basicly the same as send() but for multiple messages at a time. This is only cal
 
 ### IOConnection
 
-Ok, now we know when our functions are called. But how do we tell io.socket to process messages we get? IOConnection which the
-create() method gets provides methods do to this.
+Ok, now we know when our functions are called. But how do we tell io.socket to process messages we get?
+The provided IOConnection does the trick.
 
 #### IOConnection.transportConnect()
  
@@ -118,6 +121,22 @@ error to the callbacks. Whatever makes more sense ;)
  
 This should be called as soon as the transport has received data. IOConnection will take care about parsing the information and
 calling the callbacks of the sockets.
+
+### Changes to IOConnection
+
+Now IOConnection needs to instantiate the transpost look at the sourcecode of IOConnection and search for the connectTransport() method.
+It's part of the ConnectThread inner class.
+
+add a new else if branch to the section. I.e.:
+
+    ...
+	else if (protocols.contains(MyTransport.TRANSPORT_NAME))
+		transport = MyTransport.create(url, IOConnection.this);
+	...
+
+## GWT?
+
+I haven't tried it. But it would be great to get it working on GWT. Please let me know, if you've got it working.
 
 ## License - the boring stuff...
 
