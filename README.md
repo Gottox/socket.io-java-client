@@ -1,4 +1,5 @@
 [![Flattr this git repo](http://api.flattr.com/button/flattr-badge-large.png)](https://flattr.com/submit/auto?user_id=Gottox&url=https://github.com/Gottox/io.socket&title=io.socket&language=&tags=github&category=software)
+
 # Socket.IO-Client for Java
 
 io.socket is a simple implementation of [socket.io](http://socket.io) for Java.
@@ -9,59 +10,94 @@ to write your own transport. See description below.
 The API is inspired by [java-socket.io.client](https://github.com/benkay/java-socket.io.client) but as the license
 of this project was unclear and it had some nasty bugs, I decided to write io.socket from the scratch.
 
+Features:
+
+ * __transparent reconnecting__ - The API cares about re-establishing the connection to the server
+   when the transport is interrupted.
+ * __easy to use API__ - implement an interface, instantiate a class - you're done.
+ * __output buffer__ - send data while the transport is still connecting. No problem, io.socket handles that.
+
 ## How to use
 
 Using io.socket is quite simple. But lets see:
+```java
+// Initialise a socket:
+SocketIO socket = new IOSocket("http://127.0.0.1:3001")
+socket.go(new IOCallback() {
+		@Override
+		public void onMessage(JSONObject json) {
+			System.out.println("We received a message: " + json.toString(2));
+		}
+		
+		@Override
+		public void onMessage(String data) {
+			System.out.println("We received a message:" + data);
+		}
+		
+		@Override
+		public void onError(SocketIOException socketIOException) {
+			System.out.println("Something went wrong. Lets exit");
+			System.exit(0);
+		}
+		
+		@Override
+		public void onDisconnect() {
+			System.out.println("Disconnected");
+			System.exit(0);
+		}
+		
+		@Override
+		public void onConnect() {
+			System.out.println("Connected");
+		}
+		
+		@Override
+		public void on(String event, JSONObject... args) {
+			try {
+				socket.emit("answer", new JSONObject().put("msg", "Hello again Socket.io!"));
+			} catch (JSONException e) {
+				e.printStackTrace();
+			}
+		}
+	});
 
-	// Initialise a socket:
-	SocketIO socket = new IOSocket("http://127.0.0.1:3001")
-	socket.go(new IOCallback() {
-			@Override
-			public void onMessage(JSONObject json) {
-				System.out.println("We received a message: " + json.toString(2));
-			}
-			
-			@Override
-			public void onMessage(String data) {
-				System.out.println("We received a message:" + data);
-			}
-			
-			@Override
-			public void onError(SocketIOException socketIOException) {
-				System.out.println("Something went wrong");
-			}
-			
-			@Override
-			public void onDisconnect() {
-				System.out.println("Disconnected");
-			}
-			
-			@Override
-			public void onConnect() {
-				System.out.println("Connected");
-			}
-			
-			@Override
-			public void on(String event, JSONObject... args) {
-				try {
-					socket.emit("answer", new JSONObject().put("msg", "Hello again Socket.io!"));
-				} catch (JSONException e) {
-					e.printStackTrace();
-				}
-			}
-		});
-	
-	socket.emit("hello", new JSONObject().put("msg", "Hello Socket.io! :D"));
-	
+// This will be cached until the server is connected.
+socket.emit("hello", new JSONObject().put("msg", "Hello Socket.io! :D"));
+```
+
 For further informations, read the [Javadoc](http://s01.de/~tox/hgexport/io.socket/).
 
  * [Class SocketIO](http://s01.de/~tox/hgexport/io.socket/io/socket/SocketIO.html)
  * [Interface IOCallback](http://s01.de/~tox/hgexport/io.socket/io/socket/IOCallback.html)
 
 ## What is the architecture?
+Read this if you want to investigate in io.socket.
+
 ![Schema](https://github.com/Gottox/io.socket/raw/master/doc/schema.png)
 
-Yea, I know, this is a stub...
+### What is the SocketIO class?
+
+SocketIO is the API frontend. You can use this to connect to multiple hosts. If an
+*IOConnection* object exists for a certian host, it will be reused as the
+socket.io specs state.
+
+[Javadoc](http://s01.de/~tox/hgexport/io.socket/io/socket/SocketIO.html)
+
+### What is the IOConnection class?
+
+This class is used to hold a connection to a socket.io server. It handles calling
+callback functions of the corresponding *SocketIO* and reconnecting if the connection
+is shut down ungracefully.
+
+[Javadoc](http://s01.de/~tox/hgexport/io.socket/io/socket/IOConnection.html)
+
+### What is the IOTransport interface?
+
+This interface describes a connection to a host. The implementation can be fairly minimal,
+as *IOConnection* does most of the work for you. Reconnecting, errorhandling, etc... is
+handled by *IOConnection*.
+
+[Javadoc](http://s01.de/~tox/hgexport/io.socket/io/socket/IOTransport.html)
 
 ## How to implement a transport?
 
@@ -130,11 +166,12 @@ It's part of the ConnectThread inner class.
 
 add a new else if branch to the section. I.e.:
 
-    ...
-	else if (protocols.contains(MyTransport.TRANSPORT_NAME))
-		transport = MyTransport.create(url, IOConnection.this);
-	...
-
+```java
+...
+else if (protocols.contains(MyTransport.TRANSPORT_NAME))
+	transport = MyTransport.create(url, IOConnection.this);
+...
+```
 ## GWT?
 
 I haven't tried it. But it would be great to get it working on GWT. Please let me know, if you've got it working.
