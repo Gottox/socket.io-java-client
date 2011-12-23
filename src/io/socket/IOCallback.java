@@ -2,7 +2,7 @@
  * io.socket IOCallback.java
  *
  * Copyright (c) 2011, ${author}
- * PROJECT DESCRIPTION
+ * io.socket is a implementation of the socket.io protocol in Java.
  * 
  * See LICENSE file for more information
  */

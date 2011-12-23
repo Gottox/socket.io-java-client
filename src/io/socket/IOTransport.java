@@ -1,3 +1,11 @@
+/*
+ * io.socket IOTransport.java
+ *
+ * Copyright (c) 2011, Enno Boland
+ * io.socket is a implementation of the socket.io protocol in Java.
+ * 
+ * See LICENSE file for more information
+ */
 package io.socket;
 
 import java.io.IOException;

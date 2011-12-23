@@ -2,7 +2,7 @@
  * io.socket SocketIO.java
  *
  * Copyright (c) 2011, Enno Boland
- * PROJECT DESCRIPTION
+ * io.socket is a implementation of the socket.io protocol in Java.
  * 
  * See LICENSE file for more information
  */
@@ -174,5 +174,9 @@ public class SocketIO {
 	 */
 	public void disconnect() {
 		this.connection.disconnect(this);
+	}
+	
+	public boolean isConnected() {
+		return this.connection.isConnected();
 	}
 }

@@ -1,3 +1,11 @@
+/*
+ * io.socket IOConnection.java
+ *
+ * Copyright (c) 2011, Enno Boland
+ * io.socket is a implementation of the socket.io protocol in Java.
+ * 
+ * See LICENSE file for more information
+ */
 package io.socket;
 
 import io.socket.transports.WebsocketTransport;
@@ -427,5 +435,9 @@ public class IOConnection {
 
 	public void setHeartbeatTimeout(long heartbeatTimeout) {
 		this.heartbeatTimeout = heartbeatTimeout;
+	}
+
+	public boolean isConnected() {
+		return connected;
 	}
 }

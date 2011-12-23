@@ -1,3 +1,11 @@
+/*
+ * io.socket Test.java
+ *
+ * Copyright (c) 2011, Enno Boland
+ * io.socket is a implementation of the socket.io protocol in Java.N
+ * 
+ * See LICENSE file for more information
+ */
 import io.socket.IOCallback;
 import io.socket.SocketIO;
 import io.socket.SocketIOException;
