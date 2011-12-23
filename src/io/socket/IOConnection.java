@@ -47,6 +47,7 @@ public class IOConnection {
 	private Timer reconnectTimer;
 	private Timer reconnectTimeoutTimer;
 	private String urlStr;
+	private Exception lastException;
 
 	private final class ReconnectTimeoutTask extends TimerTask {
 		@Override
@@ -56,6 +57,7 @@ public class IOConnection {
 				reconnectTimer.cancel();
 				reconnectTimer = null;
 			}
+			error(new SocketIOException(lastException));
 			cleanup();
 		}
 	}
@@ -73,11 +75,17 @@ public class IOConnection {
 				return;
 
 			try {
-				if (sessionId == null)
+				if (sessionId != null && protocols == null) {
+					System.out.println("THIS SHOULD NEVER HAPPEN");
+				}
+				if (sessionId == null) {
+					System.out.println("Handshaking");
 					handshake();
+				}
 				else
 					System.out.println("Try to reconnect");
 				connectTransport();
+				System.out.println("Transport connected.");
 
 			} catch (IOException e) {
 				error(new SocketIOException(e));
@@ -241,22 +249,23 @@ public class IOConnection {
 	}
 
 	public void transportDisconnected() {
+		System.out.println("Disconnect");
+		this.lastException = null;
 		connected = false;
 		reconnect();
 	}
 
 	public void transportError(Exception error) {
-		if (wantToDisconnect) {
-			for (SocketIO socket : sockets.values()) {
-				socket.getCallback().onError(new SocketIOException(error));
-			}
-		}
+		System.out.println("Error");
+		this.lastException = error;
 		connected = false;
 		reconnect();
 	}
 
 	public void reconnect() {
 		if (wantToDisconnect == false) {
+			if(transport != null)
+				transport.disconnect();
 			transport = null;
 			if (reconnectTimeoutTimer == null) {
 				reconnectTimeoutTimer = new Timer("reconnectTimeoutTimer");

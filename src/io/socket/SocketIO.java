@@ -176,6 +176,15 @@ public class SocketIO {
 		this.connection.disconnect(this);
 	}
 	
+	/**
+	 * Triggers the transport to reconnect.
+	 * 
+	 * Works only if IOConnection thinks, we are connected.
+	 */
+	public void reconnect() {
+		this.connection.reconnect();
+	}
+	
 	public boolean isConnected() {
 		return this.connection.isConnected();
 	}
