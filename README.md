@@ -52,7 +52,10 @@ Using io.socket is quite simple. But lets see:
 	
 	socket.emit("hello", new JSONObject().put("msg", "Hello Socket.io! :D"));
 	
-For further informations, read the Javadoc. For end users the interesting parts are io.socket.IOCallback and io.socket.SocketIO.
+For further informations, read the [Javadoc](http://s01.de/~tox/hgexport/io.socket/).
+
+ * [Class SocketIO](http://s01.de/~tox/hgexport/io.socket/io/socket/SocketIO.html)
+ * [Interface IOCallback](http://s01.de/~tox/hgexport/io.socket/io/socket/IOCallback.html)
 
 ## What is the architecture?
 ![Schema](https://github.com/Gottox/io.socket/raw/master/doc/schema.png)
@@ -65,55 +68,56 @@ An example can be found in [WebsocketTransport.java](http://github.com/Gottox/io
 
 Create a class implementing the IOTransport interface.
 
- * static IOTransport create(URL url, IOConnection connection)
+### IOTransport
+
+#### static IOTransport create(URL url, IOConnection connection)
  
-   Called by IOConnector to create a new Instance of the transport. The URL is the one you should connect to. The WebsocketTransport
-   rewrites the url, so it uses "ws://" instead of "http://". The IOConnection instance should be saved, as the need to call functions
-   when the status of the transport changes.
+Called by IOConnector to create a new Instance of the transport. The URL is the one you should connect to. Here you can rewrite the
+url if needed, i.e. WebsocketTransport rewrites the incoming "http://" address to "ws://"
  
- * void connect();
+#### void connect();
 
-   Called by IOConnection. Here you should set up the connection.
+Called by IOConnection. Here you should set up the connection.
 
- * void disconnect();
+#### void disconnect();
 
-   Called by IOConnection. This should shut down the connection. I'm currently not sure if this function is called multiple times.
-   So make sure, it doesn't crash if it's called more than once.
+Called by IOConnection. This should shut down the connection. I'm currently not sure if this function is called multiple times.
+So make sure, it doesn't crash if it's called more than once.
 
- * void send(String text) throws IOException;
+#### void send(String text) throws IOException;
 
-   Called by IOConnection. This call request you to send data to the connection endpoint
+Called by IOConnection. This call request you to send data to the server.
 
- * boolean canSendBulk();
+#### boolean canSendBulk();
  
-   If you can send more than one message at a time, return true. If not return false.
+If you can send more than one message at a time, return true. If not return false.
 
- * void sendBulk(String[] texts) throws IOException;
+#### void sendBulk(String[] texts) throws IOException;
 
-   Basicly the same as send() but for multiple messages at a time. This is only called when canSendBulk returns true.
-   
+Basicly the same as send() but for multiple messages at a time. This is only called when canSendBulk returns true.
+
+### IOConnection
+
 Ok, now we know when our functions are called. But how do we tell io.socket to process messages we get? IOConnection which the
 create() method gets provides methods do to this.
 
- * IOConnection.transportConnect()
+#### IOConnection.transportConnect()
  
-   Call this method when the connection is established an the socket is ready to send and receive data.
+Call this method when the connection is established an the socket is ready to send and receive data.
    
- * IOConnection.transportDisconnected()
+#### IOConnection.transportDisconnected()
    
-   Call this method when the connection is shot down. IOConnection will care about reconnecting, if it's feasibility.
+Call this method when the connection is shot down. IOConnection will care about reconnecting, if it's feasibility.
    
- * IOConnection.transportError(Exception error)
+#### IOConnection.transportError(Exception error)
  
-   Call this method when the connection is experiencing an error. IOConnection will take care about reconnecting or throwing an
-   error to the callbacks. Whatever makes more sense ;)
+Call this method when the connection is experiencing an error. IOConnection will take care about reconnecting or throwing an
+error to the callbacks. Whatever makes more sense ;)
    
- * IOConnection.transportMessage(String message)
+#### IOConnection.transportMessage(String message)
  
-   This should be called as soon as the transport has received data. IOConnection will take care about parsing the information and
-   calling the callbacks of the sockets.
-   
-So now try to build a transport. :)
+This should be called as soon as the transport has received data. IOConnection will take care about parsing the information and
+calling the callbacks of the sockets.
 
 ## License - the boring stuff...
 
