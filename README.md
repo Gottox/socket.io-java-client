@@ -1,3 +1,4 @@
+[![Flattr this git repo](http://api.flattr.com/button/flattr-badge-large.png)](https://flattr.com/submit/auto?user_id=Gottox&url=https://github.com/Gottox/io.socket&title=io.socket&language=&tags=github&category=software)
 # Socket.IO-Client for Java
 
 io.socket is a simple implementation of [socket.io](http://socket.io) for Java.
