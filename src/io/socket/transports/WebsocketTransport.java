@@ -20,7 +20,7 @@ import net.tootallnate.websocket.WebSocketClient;
 
 public class WebsocketTransport extends WebSocketClient implements IOTransport {
 	private final static Pattern PATTERN_HTTP = Pattern.compile("^http");
-	public static final Object TRANSPORT_NAME = "websocket";
+	public static final String TRANSPORT_NAME = "websocket";
 
 	public static IOTransport create(URL url, IOConnection connection) {
 		URI uri = URI.create(
