@@ -20,50 +20,49 @@ Features:
 ## How to use
 
 Using io.socket is quite simple. But lets see:
-```java
-// Initialise a socket:
-SocketIO socket = new IOSocket("http://127.0.0.1:3001")
-socket.go(new IOCallback() {
-		@Override
-		public void onMessage(JSONObject json) {
-			System.out.println("We received a message: " + json.toString(2));
-		}
-		
-		@Override
-		public void onMessage(String data) {
-			System.out.println("We received a message:" + data);
-		}
-		
-		@Override
-		public void onError(SocketIOException socketIOException) {
-			System.out.println("Something went wrong. Lets exit");
-			System.exit(0);
-		}
-		
-		@Override
-		public void onDisconnect() {
-			System.out.println("Disconnected");
-			System.exit(0);
-		}
-		
-		@Override
-		public void onConnect() {
-			System.out.println("Connected");
-		}
-		
-		@Override
-		public void on(String event, JSONObject... args) {
-			try {
-				socket.emit("answer", new JSONObject().put("msg", "Hello again Socket.io!"));
-			} catch (JSONException e) {
-				e.printStackTrace();
-			}
-		}
-	});
 
-// This will be cached until the server is connected.
-socket.emit("hello", new JSONObject().put("msg", "Hello Socket.io! :D"));
-```
+	// Initialise a socket:
+	SocketIO socket = new IOSocket("http://127.0.0.1:3001")
+	socket.go(new IOCallback() {
+			@Override
+			public void onMessage(JSONObject json) {
+				System.out.println("We received a message: " + json.toString(2));
+			}
+			
+			@Override
+			public void onMessage(String data) {
+				System.out.println("We received a message:" + data);
+			}
+			
+			@Override
+			public void onError(SocketIOException socketIOException) {
+				System.out.println("Something went wrong. Lets exit");
+				System.exit(0);
+			}
+			
+			@Override
+			public void onDisconnect() {
+				System.out.println("Disconnected");
+				System.exit(0);
+			}
+			
+			@Override
+			public void onConnect() {
+				System.out.println("Connected");
+			}
+			
+			@Override
+			public void on(String event, JSONObject... args) {
+				try {
+					socket.emit("answer", new JSONObject().put("msg", "Hello again Socket.io!"));
+				} catch (JSONException e) {
+					e.printStackTrace();
+				}
+			}
+		});
+	
+	// This will be cached until the server is connected.
+	socket.emit("hello", new JSONObject().put("msg", "Hello Socket.io! :D"));
 
 For further informations, read the [Javadoc](http://s01.de/~tox/hgexport/io.socket/).
 
@@ -166,12 +165,10 @@ It's part of the ConnectThread inner class.
 
 add a new else if branch to the section. I.e.:
 
-```java
-...
-else if (protocols.contains(MyTransport.TRANSPORT_NAME))
-	transport = MyTransport.create(url, IOConnection.this);
-...
-```
+	...
+	else if (protocols.contains(MyTransport.TRANSPORT_NAME))
+		transport = MyTransport.create(url, IOConnection.this);
+	...
 ## GWT?
 
 I haven't tried it. But it would be great to get it working on GWT. Please let me know, if you've got it working.
