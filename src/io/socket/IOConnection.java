@@ -97,8 +97,6 @@ public class IOConnection {
 				InputStream stream = connection.getInputStream();
 				Scanner in = new Scanner(stream);
 				response = in.nextLine();
-				// process handshake response
-				// example: 4d4f185e96a7b:15:10:websocket,xhr-polling
 				if (response.contains(":")) {
 					String[] data = response.split(":");
 					sessionId = data[0];
