@@ -133,15 +133,15 @@ Called by IOConnection. This call request you to send data to the server.
  
 If you can send more than one message at a time, return true. If not return false.
 
+#### void sendBulk(String[] texts) throws IOException;
+
+Basicly the same as send() but for multiple messages at a time. This is only called when canSendBulk returns true.
+
 #### void invalidate();
 
 After this call, the transport should not call any methods of IOConnection. It must not disconnect from the server.
 This is the case when we're forcing a reconnect. If we disconnect gracefully from the server, it will terminate our
 session.
-
-#### void sendBulk(String[] texts) throws IOException;
-
-Basicly the same as send() but for multiple messages at a time. This is only called when canSendBulk returns true.
 
 ### IOConnection
 
