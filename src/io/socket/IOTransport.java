@@ -16,4 +16,5 @@ public interface IOTransport {
 	void send(String text) throws IOException;
 	boolean canSendBulk();
 	void sendBulk(String[] texts) throws IOException;
+	void invalidate();
 }

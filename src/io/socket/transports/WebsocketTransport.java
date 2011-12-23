@@ -40,22 +40,26 @@ public class WebsocketTransport extends WebSocketClient implements IOTransport {
 
 	@Override
 	public void onClose() {
-		connection.transportDisconnected();
+		if (connection != null)
+			connection.transportDisconnected();
 	}
 
 	@Override
 	public void onIOError(IOException error) {
-		connection.transportError(error);
+		if (connection != null)
+			connection.transportError(error);
 	}
 
 	@Override
 	public void onMessage(String message) {
-		connection.transportMessage(message);
+		if (connection != null)
+			connection.transportMessage(message);
 	}
 
 	@Override
 	public void onOpen() {
-		connection.transportConnected();
+		if (connection != null)
+			connection.transportConnected();
 	}
 
 	@Override
@@ -71,10 +75,15 @@ public class WebsocketTransport extends WebSocketClient implements IOTransport {
 	public boolean canSendBulk() {
 		return false;
 	}
-	
+
 	@Override
 	public void sendBulk(String[] texts) throws IOException {
 		throw new RuntimeException("Cannot send Bulk!");
+	}
+
+	@Override
+	public void invalidate() {
+		connection = null;
 	}
 
 }

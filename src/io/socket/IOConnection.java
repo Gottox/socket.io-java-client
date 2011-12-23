@@ -66,6 +66,8 @@ public class IOConnection {
 		@Override
 		public void run() {
 			connect();
+			// TODO: Make sure this is called only once.
+			sendPlain("2::");
 		}
 	}
 
@@ -75,9 +77,6 @@ public class IOConnection {
 				return;
 
 			try {
-				if (sessionId != null && protocols == null) {
-					System.out.println("THIS SHOULD NEVER HAPPEN");
-				}
 				if (sessionId == null) {
 					System.out.println("Handshaking");
 					handshake();
@@ -223,6 +222,11 @@ public class IOConnection {
 		}
 	}
 
+	public void invalidateTransport() {
+		transport.invalidate();
+		transport = null;
+	}
+	
 	public void transportConnected() {
 		connected = true;
 		if (reconnectTimeoutTimer != null) {
@@ -260,23 +264,6 @@ public class IOConnection {
 		this.lastException = error;
 		connected = false;
 		reconnect();
-	}
-
-	public void reconnect() {
-		if (wantToDisconnect == false) {
-			if(transport != null)
-				transport.disconnect();
-			transport = null;
-			if (reconnectTimeoutTimer == null) {
-				reconnectTimeoutTimer = new Timer("reconnectTimeoutTimer");
-				reconnectTimeoutTimer.schedule(new ReconnectTimeoutTask(),
-						closingTimout);
-			}
-			if (reconnectTimer != null)
-				reconnectTimer.cancel();
-			reconnectTimer = new Timer("reconnectTimer");
-			reconnectTimer.schedule(new ReconnectTask(), 1000);
-		}
 	}
 
 	public void transportMessage(String text) {
@@ -322,21 +309,21 @@ public class IOConnection {
 				warning("Malformated JSON received");
 			}
 			break;
-
+	
 		case IOMessage.TYPE_ACK:
-
+	
 			break;
 		case IOMessage.TYPE_ERROR:
 			if (message.getEndpoint().equals(""))
 				for (SocketIO socket : sockets.values()) {
 					socket.getCallback().onError(
 							new SocketIOException(message.getData()));
-
+	
 				}
 			else
 				findCallback(message).onError(
 						new SocketIOException(message.getData()));
-
+	
 			if (message.getData().endsWith("+0")) {
 				// We are adviced to disconnect
 				cleanup();
@@ -347,6 +334,22 @@ public class IOConnection {
 		default:
 			warning("Unkown type received" + message.getType());
 			break;
+		}
+	}
+
+	public void reconnect() {
+		if (wantToDisconnect == false && connected) {
+			transport = null;
+			connected = false;
+			if (reconnectTimeoutTimer == null) {
+				reconnectTimeoutTimer = new Timer("reconnectTimeoutTimer");
+				reconnectTimeoutTimer.schedule(new ReconnectTimeoutTask(),
+						closingTimout);
+			}
+			if (reconnectTimer != null)
+				reconnectTimer.cancel();
+			reconnectTimer = new Timer("reconnectTimer");
+			reconnectTimer.schedule(new ReconnectTask(), 1000);
 		}
 	}
 
