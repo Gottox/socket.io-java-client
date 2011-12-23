@@ -55,13 +55,13 @@ Using io.socket is quite simple. But lets see:
 For further informations, read the Javadoc. For end users the interesting parts are io.socket.IOCallback and io.socket.SocketIO.
 
 ## What is the architecture?
-![Schema](tree/master/doc/schema.png)
+![Schema](http://github.com/Gottox/io.socket/blob/master/doc/schema.png)
 
 Yea, I know, this is a stub...
 
 ## How to implement a transport?
 
-An example can be found in [WebsocketTransport.java](tree/master/src/io/socket/transports/WebsocketTransport.java)
+An example can be found in [WebsocketTransport.java](http://github.com/Gottox/io.socket/blob/master/src/io/socket/transports/WebsocketTransport.java)
 
 Create a class implementing the IOTransport interface.
 
