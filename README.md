@@ -55,7 +55,7 @@ Using io.socket is quite simple. But lets see:
 For further informations, read the Javadoc. For end users the interesting parts are io.socket.IOCallback and io.socket.SocketIO.
 
 ## What is the architecture?
-![Schema](http://github.com/Gottox/io.socket/blob/master/doc/schema.png)
+![Schema](https://github.com/Gottox/io.socket/raw/master/doc/schema.png)
 
 Yea, I know, this is a stub...
 
