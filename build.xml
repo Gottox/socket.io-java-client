@@ -1,10 +1,17 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<project basedir="." default="build" name="io.socket">
+<!-- WARNING: Eclipse auto-generated file.
+              Any modifications will be overwritten.
+              To include a user specific buildfile here, simply create one in the same
+              directory with the processing instruction <?eclipse.ant.import?>
+              as the first entry and export the buildfile again. -->
+<project basedir="." default="build" name="socket.io-java-client">
     <property environment="env"/>
+    <property name="treckme.location" value="../treckme"/>
+    <property name="ECLIPSE_HOME" value="../../../../../Applications/eclipse"/>
     <property name="debuglevel" value="source,lines,vars"/>
     <property name="target" value="1.6"/>
     <property name="source" value="1.6"/>
-    <path id="io.socket.classpath">
+    <path id="socket.io-java-client.classpath">
         <pathelement location="bin"/>
         <pathelement location="lib/json-org.jar"/>
         <pathelement location="lib/WebSocket.jar"/>
@@ -13,13 +20,11 @@
         <mkdir dir="bin"/>
         <copy includeemptydirs="false" todir="bin">
             <fileset dir="src">
-                <exclude name="**/*.launch"/>
                 <exclude name="**/*.java"/>
             </fileset>
         </copy>
         <copy includeemptydirs="false" todir="bin">
             <fileset dir="examples">
-                <exclude name="**/*.launch"/>
                 <exclude name="**/*.java"/>
             </fileset>
         </copy>
@@ -32,19 +37,39 @@
     <target name="build-subprojects"/>
     <target depends="init" name="build-project">
         <echo message="${ant.project.name}: ${ant.file}"/>
-        <javac includeantruntime="false" debug="true" debuglevel="${debuglevel}" destdir="bin" source="${source}" target="${target}">
+        <javac debug="true" debuglevel="${debuglevel}" destdir="bin" source="${source}" target="${target}">
             <src path="src"/>
-            <classpath refid="io.socket.classpath"/>
+            <classpath refid="socket.io-java-client.classpath"/>
         </javac>
-        <javac includeantruntime="false" debug="true" debuglevel="${debuglevel}" destdir="bin" source="${source}" target="${target}">
+        <javac debug="true" debuglevel="${debuglevel}" destdir="bin" source="${source}" target="${target}">
             <src path="examples"/>
-            <classpath refid="io.socket.classpath"/>
+            <classpath refid="socket.io-java-client.classpath"/>
         </javac>
     </target>
-    <target description="Build all projects which reference this project. Useful to propagate changes." name="build-refprojects"/>
+    <target description="Build all projects which reference this project. Useful to propagate changes." name="build-refprojects">
+        <ant antfile="build.xml" dir="${treckme.location}" inheritAll="false" target="clean"/>
+        <ant antfile="build.xml" dir="${treckme.location}" inheritAll="false" target="build">
+            <propertyset>
+                <propertyref name="build.compiler"/>
+            </propertyset>
+        </ant>
+    </target>
+    <target description="copy Eclipse compiler jars to ant lib directory" name="init-eclipse-compiler">
+        <copy todir="${ant.library.dir}">
+            <fileset dir="${ECLIPSE_HOME}/plugins" includes="org.eclipse.jdt.core_*.jar"/>
+        </copy>
+        <unzip dest="${ant.library.dir}">
+            <patternset includes="jdtCompilerAdapter.jar"/>
+            <fileset dir="${ECLIPSE_HOME}/plugins" includes="org.eclipse.jdt.core_*.jar"/>
+        </unzip>
+    </target>
+    <target description="compile project with Eclipse compiler" name="build-eclipse-compiler">
+        <property name="build.compiler" value="org.eclipse.jdt.core.JDTCompilerAdapter"/>
+        <antcall target="build"/>
+    </target>
     <target name="Test">
         <java classname="Test" failonerror="true" fork="yes">
-            <classpath refid="io.socket.classpath"/>
+            <classpath refid="socket.io-java-client.classpath"/>
         </java>
     </target>
 </project>

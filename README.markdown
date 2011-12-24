@@ -2,24 +2,24 @@
 
 # Socket.IO-Client for Java
 
-io.socket is a simple implementation of [socket.io](http://socket.io) for Java.
+socket.io-java-client is a simple implementation of [socket.io](http://socket.io) for Java.
 
 It uses [Java-WebSocket](https://github.com/TooTallNate/Java-WebSocket) as transport backend, but it's easy
 to write your own transport. See description below.
 
 The API is inspired by [java-socket.io.client](https://github.com/benkay/java-socket.io.client) but as the license
-of this project was unclear and it had some nasty bugs, I decided to write io.socket from the scratch.
+of this project was unclear and it had some nasty bugs, I decided to write socket.io-java-client from the scratch.
 
 Features:
 
  * __transparent reconnecting__ - The API cares about re-establishing the connection to the server
    when the transport is interrupted.
  * __easy to use API__ - implement an interface, instantiate a class - you're done.
- * __output buffer__ - send data while the transport is still connecting. No problem, io.socket handles that.
+ * __output buffer__ - send data while the transport is still connecting. No problem, socket.io-java-client handles that.
 
 ## How to use
 
-Using io.socket is quite simple. But lets see:
+Using socket.io-java-client is quite simple. But lets see:
 
 ``` java
 	// Initialise a socket:
@@ -66,15 +66,15 @@ Using io.socket is quite simple. But lets see:
 	socket.emit("hello", new JSONObject().put("msg", "Hello Socket.io! :D"));
 ```
 
-For further informations, read the [Javadoc](http://s01.de/~tox/hgexport/io.socket/).
+For further informations, read the [Javadoc](http://s01.de/~tox/hgexport/socket.io-java-client/).
 
- * [Class SocketIO](http://s01.de/~tox/hgexport/io.socket/io/socket/SocketIO.html)
- * [Interface IOCallback](http://s01.de/~tox/hgexport/io.socket/io/socket/IOCallback.html)
+ * [Class SocketIO](http://s01.de/~tox/hgexport/socket.io-java-client/io/socket/SocketIO.html)
+ * [Interface IOCallback](http://s01.de/~tox/hgexport/socket.io-java-client/io/socket/IOCallback.html)
 
 ## What is the architecture?
-Read this if you want to investigate in io.socket.
+Read this if you want to investigate in socket.io-java-client.
 
-![Schema](https://github.com/Gottox/io.socket/raw/master/doc/schema.png)
+![Schema](https://github.com/Gottox/socket.io-java-client/raw/master/doc/schema.png)
 
 ### What is the SocketIO class?
 
@@ -82,7 +82,7 @@ SocketIO is the API frontend. You can use this to connect to multiple hosts. If 
 *IOConnection* object exists for a certian host, it will be reused as the
 socket.io specs state.
 
-[Javadoc](http://s01.de/~tox/hgexport/io.socket/io/socket/SocketIO.html)
+[Javadoc](http://s01.de/~tox/hgexport/socket.io-java-client/io/socket/SocketIO.html)
 
 ### What is the IOConnection class?
 
@@ -90,7 +90,7 @@ This class is used to hold a connection to a socket.io server. It handles callin
 callback functions of the corresponding *SocketIO* and reconnecting if the connection
 is shut down ungracefully.
 
-[Javadoc](http://s01.de/~tox/hgexport/io.socket/io/socket/IOConnection.html)
+[Javadoc](http://s01.de/~tox/hgexport/socket.io-java-client/io/socket/IOConnection.html)
 
 ### What is the IOTransport interface?
 
@@ -98,11 +98,11 @@ This interface describes a connection to a host. The implementation can be fairl
 as *IOConnection* does most of the work for you. Reconnecting, errorhandling, etc... is
 handled by *IOConnection*.
 
-[Javadoc](http://s01.de/~tox/hgexport/io.socket/io/socket/IOTransport.html)
+[Javadoc](http://s01.de/~tox/hgexport/socket.io-java-client/io/socket/IOTransport.html)
 
 ## How to implement a transport?
 
-An example can be found in [WebsocketTransport.java](http://github.com/Gottox/io.socket/blob/master/src/io/socket/transports/WebsocketTransport.java)
+An example can be found in [WebsocketTransport.java](http://github.com/Gottox/socket.io-java-client/blob/master/src/io/socket/transports/WebsocketTransport.java)
 
 Create a class implementing the IOTransport interface.
 
@@ -145,7 +145,7 @@ session.
 
 ### IOConnection
 
-Ok, now we know when our functions are called. But how do we tell io.socket to process messages we get?
+Ok, now we know when our functions are called. But how do we tell socket.io-java-client to process messages we get?
 The provided IOConnection does the trick.
 
 #### IOConnection.transportConnect()
