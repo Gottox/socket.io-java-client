@@ -1,8 +1,8 @@
 /*
- * io.socket IOMessage.java
+ * socket.io-java-client IOMessage.java
  *
  * Copyright (c) 2011, Enno Boland
- * io.socket is a implementation of the socket.io protocol in Java.
+ * socket.io-java-client is a implementation of the socket.io protocol in Java.
  * 
  * See LICENSE file for more information
  */

@@ -1,8 +1,8 @@
 /*
- * io.socket Test.java
+ * socket.io-java-client Test.java
  *
  * Copyright (c) 2011, Enno Boland
- * io.socket is a implementation of the socket.io protocol in Java.N
+ * socket.io-java-client is a implementation of the socket.io protocol in Java.
  * 
  * See LICENSE file for more information
  */
