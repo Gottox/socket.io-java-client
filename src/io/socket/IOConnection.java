@@ -13,7 +13,6 @@ import io.socket.transports.WebsocketTransport;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
-import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.Arrays;
@@ -48,6 +47,7 @@ public class IOConnection {
 	private Timer reconnectTimeoutTimer;
 	private String urlStr;
 	private Exception lastException;
+	private boolean keepAliveInQueue;
 
 	private final class ReconnectTimeoutTask extends TimerTask {
 		@Override
@@ -66,8 +66,10 @@ public class IOConnection {
 		@Override
 		public void run() {
 			connect();
-			// TODO: Make sure this is called only once.
-			sendPlain("2::");
+			if(!keepAliveInQueue) {
+				sendPlain("2::");
+				keepAliveInQueue = true;
+			}
 		}
 	}
 
@@ -94,26 +96,20 @@ public class IOConnection {
 
 		private void handshake() throws IOException {
 			URL url = new URL(IOConnection.this.url.toString() + SOCKET_IO_1);
-
+			String response;
 			URLConnection connection = url.openConnection();
 			connection.setConnectTimeout(connectTimeout);
 			connection.setReadTimeout(connectTimeout);
 
-			String response;
-			try {
-				InputStream stream = connection.getInputStream();
-				Scanner in = new Scanner(stream);
-				response = in.nextLine();
-				if (response.contains(":")) {
-					String[] data = response.split(":");
-					sessionId = data[0];
-					heartbeatTimeout = Long.parseLong(data[1]) * 1000;
-					closingTimout = Long.parseLong(data[2]) * 1000;
-					protocols = Arrays.asList(data[3].split(","));
-				}
-			} catch (SocketTimeoutException ex) {
-				error(new SocketIOException(ex));
-				return;
+			InputStream stream = connection.getInputStream();
+			Scanner in = new Scanner(stream);
+			response = in.nextLine();
+			if (response.contains(":")) {
+				String[] data = response.split(":");
+				heartbeatTimeout = Long.parseLong(data[1]) * 1000;
+				closingTimout = Long.parseLong(data[2]) * 1000;
+				protocols = Arrays.asList(data[3].split(","));
+				sessionId = data[0];
 			}
 		}
 
@@ -246,6 +242,7 @@ public class IOConnection {
 				} catch (IOException e) {
 					this.outputBuffer = outputBuffer;
 				}
+			this.keepAliveInQueue = false;
 			for (String text : outputBuffer) {
 				sendPlain(text);
 			}
@@ -318,12 +315,10 @@ public class IOConnection {
 				for (SocketIO socket : sockets.values()) {
 					socket.getCallback().onError(
 							new SocketIOException(message.getData()));
-	
 				}
 			else
 				findCallback(message).onError(
 						new SocketIOException(message.getData()));
-	
 			if (message.getData().endsWith("+0")) {
 				// We are adviced to disconnect
 				cleanup();
