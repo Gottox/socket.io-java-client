@@ -108,7 +108,7 @@ Create a class implementing the IOTransport interface.
 
 ### IOTransport
 
-#### public static final Object TRANSPORT_NAME
+#### public static final String TRANSPORT_NAME
 This constant should contain the name of the transport.
 
 #### static IOTransport create(URL url, IOConnection connection)
