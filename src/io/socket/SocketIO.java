@@ -13,22 +13,21 @@ import java.net.URL;
 
 import org.json.JSONObject;
 
-// TODO: Auto-generated Javadoc
 /**
  * The Class SocketIO.
  */
 public class SocketIO {
 
-	/** The callback. */
+	/** callback of this Socket. */
 	private IOCallback callback;
 
-	/** The connection. */
+	/** connection of this Socket. */
 	private IOConnection connection;
 
-	/** The go called. */
+	/** Has {@link #go(IOCallback)} already been called. */
 	boolean goCalled = false;
 
-	/** The namespace. */
+	/** namespace. */
 	private String namespace;
 
 	/**
@@ -108,7 +107,7 @@ public class SocketIO {
 	}
 
 	/**
-	 * Gets the callback. Internally used
+	 * Gets the callback. Internally used.
 	 * 
 	 * @return the callback
 	 */
@@ -117,7 +116,7 @@ public class SocketIO {
 	}
 
 	/**
-	 * Gets the name space. Internally used
+	 * Gets the namespace. Internally used.
 	 * 
 	 * @return the namespace
 	 */

@@ -26,21 +26,21 @@ public interface IOCallback {
 	void onConnect();
 	
 	/**
-	 * On message. Called when theserver sends String data
+	 * On message. Called when the server sends String data.
 	 *
-	 * @param data the data
+	 * @param data the data.
 	 */
 	void onMessage(String data);
 	
 	/**
-	 * On message. Called when the server sends JSON data
+	 * On message. Called when the server sends JSON data.
 	 *
-	 * @param json JSON object sent by server
+	 * @param json JSON object sent by server.
 	 */
 	void onMessage(JSONObject json);
 	
 	/**
-	 * On [Event]. Called when server calls emit()
+	 * On [Event]. Called when server emits an event.
 	 *
 	 * @param event Name of the event
 	 * @param args arguments of the event

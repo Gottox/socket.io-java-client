@@ -18,10 +18,24 @@ import java.util.regex.Pattern;
 
 import net.tootallnate.websocket.WebSocketClient;
 
+/**
+ * The Class WebsocketTransport.
+ */
 public class WebsocketTransport extends WebSocketClient implements IOTransport {
+	
+	/** Pattern used to replace http:// by ws:// respectively https:// by wss:// */
 	private final static Pattern PATTERN_HTTP = Pattern.compile("^http");
+	
+	/** The String which indetifies this Transport */
 	public static final String TRANSPORT_NAME = "websocket";
 
+	/**
+	 * Creates a new Transport for the given url an {@link IOConnection}.
+	 *
+	 * @param url the url
+	 * @param connection the connection
+	 * @return the iO transport
+	 */
 	public static IOTransport create(URL url, IOConnection connection) {
 		URI uri = URI.create(
 				PATTERN_HTTP.matcher(url.toString()).replaceFirst("ws")
@@ -31,37 +45,59 @@ public class WebsocketTransport extends WebSocketClient implements IOTransport {
 		return new WebsocketTransport(uri, connection);
 	}
 
+	/** The IOConnection of this transport. */
 	private IOConnection connection;
 
+	/**
+	 * Instantiates a new websocket transport.
+	 *
+	 * @param uri the uri
+	 * @param connection the connection
+	 */
 	public WebsocketTransport(URI uri, IOConnection connection) {
 		super(uri);
 		this.connection = connection;
 	}
 
+	/* (non-Javadoc)
+	 * @see net.tootallnate.websocket.WebSocketClient#onClose()
+	 */
 	@Override
 	public void onClose() {
 		if (connection != null)
 			connection.transportDisconnected();
 	}
 
+	/* (non-Javadoc)
+	 * @see net.tootallnate.websocket.WebSocketClient#onIOError(java.io.IOException)
+	 */
 	@Override
 	public void onIOError(IOException error) {
 		if (connection != null)
 			connection.transportError(error);
 	}
 
+	/* (non-Javadoc)
+	 * @see net.tootallnate.websocket.WebSocketClient#onMessage(java.lang.String)
+	 */
 	@Override
 	public void onMessage(String message) {
 		if (connection != null)
 			connection.transportMessage(message);
 	}
 
+	/* (non-Javadoc)
+	 * @see net.tootallnate.websocket.WebSocketClient#onOpen()
+	 */
 	@Override
 	public void onOpen() {
 		if (connection != null)
 			connection.transportConnected();
 	}
 
+	/* (non-Javadoc)
+	 * @see io.socket.IOTransport#disconnect()
+	 */
 	@Override
 	public void disconnect() {
 		try {
@@ -71,16 +107,25 @@ public class WebsocketTransport extends WebSocketClient implements IOTransport {
 		}
 	}
 
+	/* (non-Javadoc)
+	 * @see io.socket.IOTransport#canSendBulk()
+	 */
 	@Override
 	public boolean canSendBulk() {
 		return false;
 	}
 
+	/* (non-Javadoc)
+	 * @see io.socket.IOTransport#sendBulk(java.lang.String[])
+	 */
 	@Override
 	public void sendBulk(String[] texts) throws IOException {
 		throw new RuntimeException("Cannot send Bulk!");
 	}
 
+	/* (non-Javadoc)
+	 * @see io.socket.IOTransport#invalidate()
+	 */
 	@Override
 	public void invalidate() {
 		connection = null;
