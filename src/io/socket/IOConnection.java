@@ -236,6 +236,7 @@ public class IOConnection {
 		for (SocketIO socket : sockets.values()) {
 			socket.getCallback().onError(e);
 		}
+		cleanup();
 	}
 
 	/**
@@ -330,7 +331,7 @@ public class IOConnection {
 	/**
 	 * Invalidates transport, used for forced reconnecting.
 	 */
-	public void invalidateTransport() {
+	private void invalidateTransport() {
 		transport.invalidate();
 		transport = null;
 	}
@@ -464,7 +465,9 @@ public class IOConnection {
 	 * forces a reconnect. This had become useful on some android devices which do not shut down tcp-connections when switching from HSDPA to Wifi 
 	 */
 	public void reconnect() {
-		if (wantToDisconnect == false && connected) {
+		if (wantToDisconnect == false) {
+			if(transport != null)
+				invalidateTransport();
 			transport = null;
 			connected = false;
 			if (reconnectTimeoutTimer == null) {
