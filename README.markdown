@@ -16,6 +16,7 @@ Features:
    when the transport is interrupted.
  * __easy to use API__ - implement an interface, instantiate a class - you're done.
  * __output buffer__ - send data while the transport is still connecting. No problem, socket.io-java-client handles that.
+ * __meaningful exceptions__ - if something goes wrong, SocketIO tries to throw meaningful exceptions with hints for fixing.
 
 ## How to use
 
@@ -24,7 +25,7 @@ Using socket.io-java-client is quite simple. But lets see:
 ``` java
 	// Initialise a socket:
 	SocketIO socket = new IOSocket("http://127.0.0.1:3001")
-	socket.go(new IOCallback() {
+	socket.connect(new IOCallback() {
 			@Override
 			public void onMessage(JSONObject json) {
 				System.out.println("We received a message: " + json.toString(2));

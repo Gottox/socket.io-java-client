@@ -28,14 +28,19 @@ public class SocketIO {
 	private String namespace;
 
 	private URL url;
-	
-	public SocketIO() {
-		
-	}
-	
+
 	/**
-	 * Instantiates a new socket.io object. The object connects after calling
-	 * {@link #go(IOCallback)}
+	 * Instantiates a new socket.io connection. The object connects after
+	 * calling {@link #connect(URL, IOCallback)} or
+	 * {@link #connect(String, IOCallback)}
+	 */
+	public SocketIO() {
+
+	}
+
+	/**
+	 * Instantiates a new socket.io connection. The object connects after
+	 * calling {@link #connect(IOCallback)}
 	 * 
 	 * @param url
 	 *            the url
@@ -43,12 +48,14 @@ public class SocketIO {
 	 *             the malformed url exception
 	 */
 	public SocketIO(final String url) throws MalformedURLException {
-		connect(url, null);
+		if (url == null)
+			throw new RuntimeException("url may not be null.");
+		setAndConnect(new URL(url), null);
 	}
 
 	/**
-	 * Instantiates a new socket.io object and connects to the given url.
-	 * Do not call any of the {@link #connect(URL, IOCallback)} methods afterwards.
+	 * Instantiates a new socket.io object and connects to the given url. Do not
+	 * call any of the connect() methods afterwards.
 	 * 
 	 * @param url
 	 *            the url
@@ -61,29 +68,10 @@ public class SocketIO {
 			throws MalformedURLException {
 		connect(url, callback);
 	}
-	
-	/**
-	 * Connects to a given host with a given callback.
-	 */
-	public void connect(final String url, final IOCallback callback) throws MalformedURLException {
-		connect(new URL(url), callback);
-	}
 
 	/**
-	 * Instantiates a new socket.io connection. The object connects after
-	 * calling {@link #go(IOCallback)}
-	 * 
-	 * @param url
-	 *            the url
-	 */
-	public SocketIO(final URL url) {
-		connect(url, null);
-	}
-	
-	/**
-	 * Instantiates a new socket.io object and connects to the given url.
-	 * calling {@link #go(IOCallback)} afterwards results in a
-	 * {@link RuntimeException}
+	 * Instantiates a new socket.io object and connects to the given url. Do not
+	 * call any of the connect() methods afterwards.
 	 * 
 	 * @param url
 	 *            the url
@@ -91,29 +79,109 @@ public class SocketIO {
 	 *            the callback
 	 */
 	public SocketIO(final URL url, final IOCallback callback) {
-		connect(url, callback);
+		if (setAndConnect(url, callback) == false)
+			throw new RuntimeException("url and callback may not be null.");
 	}
-	
+
+	/**
+	 * Instantiates a new socket.io connection. The object connects after
+	 * calling {@link #connect(IOCallback)}
+	 * 
+	 * @param url
+	 *            the url
+	 */
+	public SocketIO(final URL url) {
+		setAndConnect(url, null);
+	}
+
+	/**
+	 * connects to supplied host using callback. Do only use this method if you
+	 * instantiate {@link SocketIO} using {@link #SocketIO()}.
+	 * 
+	 * @param url
+	 *            the url
+	 * @param callback
+	 *            the callback
+	 */
+	public void connect(final String url, final IOCallback callback)
+			throws MalformedURLException {
+		if (setAndConnect(new URL(url), callback) == false) {
+			if (url == null || callback == null)
+				throw new RuntimeException("url and callback may not be null.");
+			else
+				throw new RuntimeException(
+						"connect(String, IOCallback) can only be invoked after SocketIO()");
+		}
+	}
+
+	/**
+	 * connects to supplied host using callback. Do only use this method if you
+	 * instantiate {@link SocketIO} using {@link #SocketIO()}.
+	 * 
+	 * @param url
+	 *            the url
+	 * @param callback
+	 *            the callback
+	 */
 	public void connect(URL url, IOCallback callback) {
-		if(url != null) {
+		if (setAndConnect(url, callback) == false) {
+			if (url == null || callback == null)
+				throw new RuntimeException("url and callback may not be null.");
+			else
+				throw new RuntimeException(
+						"connect(URL, IOCallback) can only be invoked after SocketIO()");
+		}
+	}
+
+	/**
+	 * connects to an already set host. Do only use this method if you
+	 * instantiate {@link SocketIO} using {@link #SocketIO(String)} or
+	 * {@link #SocketIO(URL)}.
+	 * 
+	 * @param callback
+	 *            the callback
+	 */
+	public void connect(IOCallback callback) {
+		if (setAndConnect(null, callback) == false) {
+			if (callback == null)
+				throw new RuntimeException("callback may not be null.");
+			else if (this.url == null)
+				throw new RuntimeException(
+						"connect(IOCallback) can only be invoked after SocketIO(String) or SocketIO(URL)");
+		}
+	}
+
+	/**
+	 * Sets url and callback and initiates connecting if both are present
+	 * 
+	 * @param url
+	 *            the url
+	 * @param callback
+	 *            the callback
+	 * @return true if connecting has been initiated, false if not
+	 */
+	private boolean setAndConnect(URL url, IOCallback callback) {
+		if ((this.url != null && url != null)
+				|| (this.callback != null && callback != null))
+			return false;
+		if (url != null) {
 			this.url = url;
-			final String origin = url.getProtocol() + "://" + url.getAuthority();
-			this.namespace = url.getPath();
+		}
+		if (callback != null) {
+			this.callback = callback;
+		}
+		if (this.callback != null && this.url != null) {
+			final String origin = this.url.getProtocol() + "://"
+					+ this.url.getAuthority();
+			this.namespace = this.url.getPath();
 			if (this.namespace.equals("/")) {
 				this.namespace = "";
 			}
 			this.connection = IOConnection.create(origin);
-		}
-		if(callback != null) {
-			this.callback = callback;
-		}
-		if(this.callback != null && this.url != null) {
 			this.connection.connect(this);
+			return true;
 		}
-	}
-	
-	public void connect(IOCallback callback) {
-		connect((URL)null, callback);
+		return false;
 	}
 
 	/**
@@ -174,7 +242,7 @@ public class SocketIO {
 	public void disconnect() {
 		this.connection.disconnect(this);
 	}
-	
+
 	/**
 	 * Triggers the transport to reconnect.
 	 * 
@@ -183,7 +251,7 @@ public class SocketIO {
 	public void reconnect() {
 		this.connection.reconnect();
 	}
-	
+
 	public boolean isConnected() {
 		return this.connection.isConnected();
 	}

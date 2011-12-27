@@ -19,8 +19,6 @@ public class Test {
 	private static SocketIO socket;
 	static IOCallback callback = new IOCallback() {
 		
-		
-
 		@Override
 		public void onMessage(JSONObject json) {
 
@@ -63,7 +61,8 @@ public class Test {
 		//System.out.println(new IOMessage("0::/ABC").toString());
 		//System.exit(0);
 		try {
-			socket = new SocketIO("http://127.0.0.1:3001/foobar", callback);
+			socket = new SocketIO();
+			socket.connect("http://127.0.0.1:3001/foobar", callback);
 		} catch (MalformedURLException e) {
 			e.printStackTrace();
 		}
