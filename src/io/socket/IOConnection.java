@@ -35,7 +35,7 @@ public class IOConnection {
 	/** Socket.io path. */
 	public static final String SOCKET_IO_1 = "/socket.io/1/";
 	
-	/** All availible connections. */
+	/** All available connections. */
 	private static HashMap<String, IOConnection> connections = new HashMap<String, IOConnection>();
 	
 	/** The url for this connection. */
