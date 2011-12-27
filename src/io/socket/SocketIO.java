@@ -246,7 +246,8 @@ public class SocketIO {
 	/**
 	 * Triggers the transport to reconnect.
 	 * 
-	 * Works only if IOConnection thinks, we are connected.
+	 * This had become useful on some android devices which
+	 * do not shut down tcp-connections when switching from HSDPA to Wifi
 	 */
 	public void reconnect() {
 		this.connection.reconnect();
