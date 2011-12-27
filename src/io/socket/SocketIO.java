@@ -24,12 +24,15 @@ public class SocketIO {
 	/** connection of this Socket. */
 	private IOConnection connection;
 
-	/** Has {@link #go(IOCallback)} already been called. */
-	boolean goCalled = false;
-
 	/** namespace. */
 	private String namespace;
 
+	private URL url;
+	
+	public SocketIO() {
+		
+	}
+	
 	/**
 	 * Instantiates a new socket.io object. The object connects after calling
 	 * {@link #go(IOCallback)}
@@ -40,13 +43,12 @@ public class SocketIO {
 	 *             the malformed url exception
 	 */
 	public SocketIO(final String url) throws MalformedURLException {
-		this(new URL(url));
+		connect(url, null);
 	}
 
 	/**
 	 * Instantiates a new socket.io object and connects to the given url.
-	 * calling {@link #go(IOCallback)} afterwards results in a
-	 * {@link RuntimeException}
+	 * Do not call any of the {@link #connect(URL, IOCallback)} methods afterwards.
 	 * 
 	 * @param url
 	 *            the url
@@ -57,8 +59,14 @@ public class SocketIO {
 	 */
 	public SocketIO(final String url, final IOCallback callback)
 			throws MalformedURLException {
-		this(url);
-		this.go(callback);
+		connect(url, callback);
+	}
+	
+	/**
+	 * Connects to a given host with a given callback.
+	 */
+	public void connect(final String url, final IOCallback callback) throws MalformedURLException {
+		connect(new URL(url), callback);
 	}
 
 	/**
@@ -69,14 +77,9 @@ public class SocketIO {
 	 *            the url
 	 */
 	public SocketIO(final URL url) {
-		final String origin = url.getProtocol() + "://" + url.getAuthority();
-		this.namespace = url.getPath();
-		if (this.namespace.equals("/")) {
-			this.namespace = "";
-		}
-		this.connection = IOConnection.create(origin);
+		connect(url, null);
 	}
-
+	
 	/**
 	 * Instantiates a new socket.io object and connects to the given url.
 	 * calling {@link #go(IOCallback)} afterwards results in a
@@ -88,8 +91,29 @@ public class SocketIO {
 	 *            the callback
 	 */
 	public SocketIO(final URL url, final IOCallback callback) {
-		this(url);
-		this.go(callback);
+		connect(url, callback);
+	}
+	
+	public void connect(URL url, IOCallback callback) {
+		if(url != null) {
+			this.url = url;
+			final String origin = url.getProtocol() + "://" + url.getAuthority();
+			this.namespace = url.getPath();
+			if (this.namespace.equals("/")) {
+				this.namespace = "";
+			}
+			this.connection = IOConnection.create(origin);
+		}
+		if(callback != null) {
+			this.callback = callback;
+		}
+		if(this.callback != null && this.url != null) {
+			this.connection.connect(this);
+		}
+	}
+	
+	public void connect(IOCallback callback) {
+		connect((URL)null, callback);
 	}
 
 	/**
@@ -122,30 +146,6 @@ public class SocketIO {
 	 */
 	public String getNamespace() {
 		return this.namespace;
-	}
-
-	/**
-	 * If you're using {@link #SocketIO(String)} or {@link #SocketIO(URL)}, this
-	 * call will start connecting to the server. Make sure, you call this
-	 * function only once. A second call on an object will cause a
-	 * {@link RuntimeException}.
-	 * 
-	 * {@link #SocketIO(String, IOCallback)} an
-	 * {@link #SocketIO(URL, IOCallback)} will call this function in the
-	 * constructor. Don't use this function if your using one of these
-	 * constructors
-	 * 
-	 * @param callback
-	 *            the callback
-	 */
-	public void go(final IOCallback callback) {
-		if (this.goCalled) {
-			throw new RuntimeException(
-					"go() may only be called when using SocketIO constructor with one argument.");
-		}
-		this.callback = callback;
-		this.connection.connect(this);
-		this.goCalled = true;
 	}
 
 	/**
