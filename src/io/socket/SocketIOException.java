@@ -32,7 +32,7 @@ public class SocketIOException extends Exception {
 	 *
 	 * @param ex the exception.
 	 */
-	public SocketIOException(Exception ex) {
-		super(ex);
+	public SocketIOException(String message, Exception ex) {
+		super(message, ex);
 	}
 }

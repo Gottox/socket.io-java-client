@@ -16,7 +16,7 @@ Features:
    when the transport is interrupted.
  * __easy to use API__ - implement an interface, instantiate a class - you're done.
  * __output buffer__ - send data while the transport is still connecting. No problem, socket.io-java-client handles that.
- * __meaningful exceptions__ - if something goes wrong, SocketIO tries to throw meaningful exceptions with hints for fixing.
+ * __meaningful exceptions__ - If something goes wrong, SocketIO tries to throw meaningful exceptions with hints for fixing.
 
 ## How to use
 
