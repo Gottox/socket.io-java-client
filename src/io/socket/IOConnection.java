@@ -150,14 +150,14 @@ public class IOConnection {
 	}
 
 	/**
-	 * The Class ConnectThread. Handles connecting to the server
+	 * The Class ConnectThread. Handles connecting to the server with an
+	 * {@link IOTransport}
 	 */
 	private class ConnectThread extends Thread {
 
-		/*
-		 * (non-Javadoc)
-		 * 
-		 * @see java.lang.Thread#run()
+		/**
+		 * Tries handshaking if necessary and connects with corresponding
+		 * transport afterwards.
 		 */
 		public void run() {
 			if (transport != null)
@@ -240,7 +240,7 @@ public class IOConnection {
 	 * Instantiates a new IOConnection.
 	 * 
 	 * @param url
-	 *            the url
+	 *            the URL
 	 */
 	private IOConnection(String url) {
 		try {
@@ -253,7 +253,7 @@ public class IOConnection {
 	}
 
 	/**
-	 * Populates an error to the callbacks
+	 * Populates an error to the connected {@link IOCallback}s and shuts down
 	 * 
 	 * @param e
 	 *            an exception
@@ -279,7 +279,7 @@ public class IOConnection {
 	 * Connects a socket to the IOConnection
 	 * 
 	 * @param socket
-	 *            the socket
+	 *            the socket to be connected
 	 */
 	public void connect(SocketIO socket) {
 		if (sockets.size() == 0)
@@ -302,7 +302,7 @@ public class IOConnection {
 	}
 
 	/**
-	 * Cleanup. IOConnection is not usable after this call anymore.
+	 * Cleanup. IOConnection is not usable after this calling this.
 	 */
 	private void cleanup() {
 		System.out.println("Clean up");
@@ -322,10 +322,11 @@ public class IOConnection {
 	}
 
 	/**
-	 * Disconnect a socket from the IOConnection
+	 * Disconnect a socket from the IOConnection. Shuts down this IOConnection
+	 * if no further connections are available for this IOConnection.
 	 * 
 	 * @param socket
-	 *            the socket
+	 *            the socket to be shut down
 	 */
 	public void disconnect(SocketIO socket) {
 		sendPlain("0::" + socket.getNamespace());
@@ -338,10 +339,10 @@ public class IOConnection {
 	}
 
 	/**
-	 * Sends a plain message to the transport
+	 * Sends a plain message to the {@link IOTransport}.
 	 * 
 	 * @param text
-	 *            the text to be send
+	 *            the Text to be send.
 	 */
 	private void sendPlain(String text) {
 		synchronized (outputBuffer) {
@@ -361,7 +362,7 @@ public class IOConnection {
 	}
 
 	/**
-	 * Invalidates transport, used for forced reconnecting.
+	 * Invalidates an {@link IOTransport}, used for forced reconnecting.
 	 */
 	private void invalidateTransport() {
 		transport.invalidate();
@@ -369,7 +370,7 @@ public class IOConnection {
 	}
 
 	/**
-	 * Transport calls this when a connection is established.
+	 * {@link IOTransport} calls this when a connection is established.
 	 */
 	public void transportConnected() {
 		connected = true;
@@ -398,7 +399,7 @@ public class IOConnection {
 	}
 
 	/**
-	 * Transport calls this when a connection has been shut down.
+	 * {@link IOTransport} calls this when a connection has been shut down.
 	 */
 	public void transportDisconnected() {
 		System.out.println("Disconnect");
@@ -408,8 +409,8 @@ public class IOConnection {
 	}
 
 	/**
-	 * Transport calls this, when an exception has occured and the transport is
-	 * not usable anymore.
+	 * {@link IOTransport} calls this, when an exception has occured and the
+	 * transport is not usable anymore.
 	 * 
 	 * @param error
 	 *            the error
@@ -422,7 +423,7 @@ public class IOConnection {
 	}
 
 	/**
-	 * Transport calls this, when a message has been received.
+	 * {@link IOTransport} calls this, when a message has been received.
 	 * 
 	 * @param text
 	 *            the text
@@ -498,7 +499,7 @@ public class IOConnection {
 
 	/**
 	 * forces a reconnect. This had become useful on some android devices which
-	 * do not shut down tcp-connections when switching from HSDPA to Wifi
+	 * do not shut down TCP-connections when switching from HSDPA to Wifi
 	 */
 	public void reconnect() {
 		if (wantToDisconnect == false) {
@@ -519,7 +520,8 @@ public class IOConnection {
 	}
 
 	/**
-	 * finds the corresponding callback object to an incoming message.
+	 * finds the corresponding callback object to an incoming message. Returns a
+	 * dummy callback if no corresponding callback can be found
 	 * 
 	 * @param message
 	 *            the message
@@ -545,8 +547,8 @@ public class IOConnection {
 	}
 
 	/**
-	 * Returns the session id. This should be called from the transport to
-	 * connect to the right Session.
+	 * Returns the session id. This should be called from the
+	 * {@link IOTransport} to connect to the right Session.
 	 * 
 	 * @return the session id
 	 */
@@ -646,7 +648,8 @@ public class IOConnection {
 					socket.getNamespace(), json.toString());
 			sendPlain(message.toString());
 		} catch (JSONException e) {
-			error(new SocketIOException("Internal error in emit(). Please contact the author with this exception."));
+			error(new SocketIOException(
+					"Internal error in emit(). Please contact the author with this exception."));
 		}
 
 	}
