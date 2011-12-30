@@ -15,7 +15,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 
-public class Test {
+public class Example {
 	private static SocketIO socket;
 	static IOCallback callback = new IOCallback() {
 		
