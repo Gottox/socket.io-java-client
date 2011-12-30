@@ -101,6 +101,11 @@ public class IOConnection {
 	 */
 	private Exception lastException;
 
+	/**
+	 * The next ID to use
+	 */
+	private int nextId = 0;
+
 	/** true if there's already a keepalive in {@link #outputBuffer}. */
 	private boolean keepAliveInQueue;
 
@@ -438,21 +443,43 @@ public class IOConnection {
 					socket.getCallback().onDisconnect();
 				}
 			} else
-				findCallback(message).onDisconnect();
+				try {
+					findCallback(message).onDisconnect();
+				} catch (Exception e) {
+					error(new SocketIOException(
+							"Exception was thrown in onDisconnect()", e));
+				}
 			break;
 		case IOMessage.TYPE_CONNECT:
-			findCallback(message).onConnect();
+			try {
+				findCallback(message).onConnect();
+			} catch (Exception e) {
+				error(new SocketIOException(
+						"Exception was thrown in onConnect()", e));
+			}
 			break;
 		case IOMessage.TYPE_HEARTBEAT:
 			sendPlain("2::");
 			break;
 		case IOMessage.TYPE_MESSAGE:
-			findCallback(message).onMessage(message.getData());
+			try {
+				findCallback(message).onMessage(message.getData());
+			} catch (Exception e) {
+				error(new SocketIOException(
+						"Exception was thrown in onMessage(String).\n" +
+						"Message was: " + message.toString(), e));
+			}
 			break;
 		case IOMessage.TYPE_JSON_MESSAGE:
 			try {
-				findCallback(message).onMessage(
-						new JSONObject(message.getData()));
+				JSONObject obj = new JSONObject(message.getData());
+				try {
+					findCallback(message).onMessage(obj);
+				} catch (Exception e) {
+					error(new SocketIOException(
+							"Exception was thrown in onMessage(JSONObject)\n" +
+							"Message was: " + message.toString(), e));
+				}
 			} catch (JSONException e) {
 				warning("Malformated JSON received");
 			}
@@ -466,7 +493,13 @@ public class IOConnection {
 					argsArray[i] = args.getJSONObject(i);
 				}
 				String eventName = event.getString("name");
-				findCallback(message).on(eventName, argsArray);
+				try {
+					findCallback(message).on(eventName, argsArray);
+				} catch (Exception e) {
+					error(new SocketIOException(
+							"Exception was thrown in on(String, JSONObject[])" +
+							"Message was: " + message.toString(), e));
+				}
 			} catch (JSONException e) {
 				warning("Malformated JSON received");
 			}
