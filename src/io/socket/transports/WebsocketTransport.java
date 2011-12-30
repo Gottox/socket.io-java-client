@@ -26,9 +26,12 @@ public class WebsocketTransport extends WebSocketClient implements IOTransport {
 	/** Pattern used to replace http:// by ws:// respectively https:// by wss:// */
 	private final static Pattern PATTERN_HTTP = Pattern.compile("^http");
 	
-	/** The String which indetifies this Transport */
+	/** The String which identifies this Transport */
 	public static final String TRANSPORT_NAME = "websocket";
-
+	
+	/** The IOConnection of this transport. */
+	private IOConnection connection;
+	
 	/**
 	 * Creates a new Transport for the given url an {@link IOConnection}.
 	 *
@@ -44,10 +47,7 @@ public class WebsocketTransport extends WebSocketClient implements IOTransport {
 
 		return new WebsocketTransport(uri, connection);
 	}
-
-	/** The IOConnection of this transport. */
-	private IOConnection connection;
-
+	
 	/**
 	 * Instantiates a new websocket transport.
 	 *
