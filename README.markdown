@@ -180,9 +180,14 @@ add a new else if branch to the section. I.e.:
 		transport = MyTransport.create(url, IOConnection.this);
 	...
 ```
-## GWT?
+## Frameworks
 
-I haven't tried it. But it would be great to get it working on GWT. Please let me know, if you've got it working.
+This Library was designed with portability in mind.
+
+* __Android__ is fully supported.
+* __JRE__ is fully supported.
+* __GWT__ does not work at the moment, but a port would be possible.
+* ... is there anything else out there?
 
 ## License - the boring stuff...
 
