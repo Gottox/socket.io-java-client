@@ -494,7 +494,8 @@ public class IOConnection {
 				JSONArray args = event.getJSONArray("args");
 				JSONObject[] argsArray = new JSONObject[args.length()];
 				for (int i = 0; i < args.length(); i++) {
-					argsArray[i] = args.getJSONObject(i);
+					if(args.isNull(i) == false)
+						argsArray[i] = args.getJSONObject(i);
 				}
 				String eventName = event.getString("name");
 				try {
