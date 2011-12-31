@@ -264,6 +264,10 @@ public class IOConnection {
 	 *            an exception
 	 */
 	protected void error(SocketIOException e) {
+		if(sockets.size() == 0) {
+			System.err.println("This is a fallback handling. This error was thrown when no SocketIO was connected which could handle this Exception.");
+			e.printStackTrace();
+		}
 		for (SocketIO socket : sockets.values()) {
 			socket.getCallback().onError(e);
 		}
