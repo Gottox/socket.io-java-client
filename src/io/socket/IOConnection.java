@@ -476,7 +476,10 @@ public class IOConnection {
 			break;
 		case IOMessage.TYPE_JSON_MESSAGE:
 			try {
-				JSONObject obj = new JSONObject(message.getData());
+				JSONObject obj = null;
+				String data = message.getData();
+				if(data.trim().equals("null") == false)
+					obj = new JSONObject(data);
 				try {
 					findCallback(message).onMessage(obj);
 				} catch (Exception e) {
