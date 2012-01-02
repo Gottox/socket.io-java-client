@@ -585,6 +585,9 @@ public class IOConnection {
 					warning("Received malformated Acknowledge data!");
 				}
 			}
+			else if(data.length == 1){
+				sendPlain("6:::"+data[0]);
+			}
 			break;
 		case IOMessage.TYPE_ERROR:
 			if (message.getEndpoint().equals(""))
