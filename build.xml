@@ -7,6 +7,7 @@
 <project basedir="." default="build" name="socket.io-java-client">
     <property environment="env"/>
     <property name="treckme.location" value="../treckme"/>
+    <property name="treckme_android.location" value="../treckme_android"/>
     <property name="ECLIPSE_HOME" value="../../../../../Applications/eclipse"/>
     <property name="debuglevel" value="source,lines,vars"/>
     <property name="target" value="1.6"/>
@@ -20,11 +21,13 @@
         <mkdir dir="bin"/>
         <copy includeemptydirs="false" todir="bin">
             <fileset dir="src">
+                <exclude name="**/*.launch"/>
                 <exclude name="**/*.java"/>
             </fileset>
         </copy>
         <copy includeemptydirs="false" todir="bin">
             <fileset dir="examples">
+                <exclude name="**/*.launch"/>
                 <exclude name="**/*.java"/>
             </fileset>
         </copy>
@@ -49,6 +52,12 @@
     <target description="Build all projects which reference this project. Useful to propagate changes." name="build-refprojects">
         <ant antfile="build.xml" dir="${treckme.location}" inheritAll="false" target="clean"/>
         <ant antfile="build.xml" dir="${treckme.location}" inheritAll="false" target="build">
+            <propertyset>
+                <propertyref name="build.compiler"/>
+            </propertyset>
+        </ant>
+        <ant antfile="build.xml" dir="${treckme_android.location}" inheritAll="false" target="clean"/>
+        <ant antfile="build.xml" dir="${treckme_android.location}" inheritAll="false" target="build">
             <propertyset>
                 <propertyref name="build.compiler"/>
             </propertyset>
