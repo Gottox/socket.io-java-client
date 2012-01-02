@@ -30,14 +30,14 @@ public interface IOCallback {
 	 *
 	 * @param data the data.
 	 */
-	void onMessage(String data);
+	void onMessage(String data, IOAcknowledge ack);
 	
 	/**
 	 * On message. Called when the server sends JSON data.
 	 *
 	 * @param json JSON object sent by server.
 	 */
-	void onMessage(JSONObject json);
+	void onMessage(JSONObject json, IOAcknowledge ack);
 	
 	/**
 	 * On [Event]. Called when server emits an event.
@@ -45,7 +45,7 @@ public interface IOCallback {
 	 * @param event Name of the event
 	 * @param args arguments of the event
 	 */
-	void on(String event, JSONObject... args);
+	void on(String event, IOAcknowledge ack, Object... args);
 	
 	/**
 	 * On error. Called when socket is in an undefined state. No reconnect attempts will be made.

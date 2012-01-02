@@ -6,6 +6,7 @@
  * 
  * See LICENSE file for more information
  */
+import io.socket.IOAcknowledge;
 import io.socket.IOCallback;
 import io.socket.SocketIO;
 import io.socket.SocketIOException;
@@ -20,12 +21,12 @@ public class Example {
 	static IOCallback callback = new IOCallback() {
 		
 		@Override
-		public void onMessage(JSONObject json) {
+		public void onMessage(JSONObject json, IOAcknowledge ack) {
 
 		}
 		
 		@Override
-		public void onMessage(String data) {
+		public void onMessage(String data, IOAcknowledge ack) {
 			
 		}
 		
@@ -45,9 +46,15 @@ public class Example {
 		}
 		
 		@Override
-		public void on(String event, JSONObject... args) {
+		public void on(String event, IOAcknowledge ack, Object... args) {
 			try {
-				socket.emit("bla", new JSONObject().put("Hello", "World"));
+				socket.emit("bla", new IOAcknowledge() {
+
+					@Override
+					public void ack(Object... args) {
+						System.out.println("Fooo");
+					}} ,new JSONObject().put("Hello", "World"));
+				ack.ack("Hello");
 			} catch (JSONException e) {
 				e.printStackTrace();
 			}
@@ -58,11 +65,9 @@ public class Example {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		//System.out.println(new IOMessage("0::/ABC").toString());
-		//System.exit(0);
 		try {
 			socket = new SocketIO();
-			socket.connect("http://127.0.0.1:3001/foobar", callback);
+			socket.connect("http://127.0.0.1:3001/", callback);
 		} catch (MalformedURLException e) {
 			e.printStackTrace();
 		}

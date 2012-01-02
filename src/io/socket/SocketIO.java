@@ -194,8 +194,25 @@ public class SocketIO {
 	 * @param args
 	 *            the arguments
 	 */
-	public void emit(final String event, final JSONObject... args) {
-		this.connection.emit(this, event, args);
+	public void emit(final String event, final Object... args) {
+		this.connection.emit(this, event, null, args);
+	}
+
+	/**
+	 * Emits an event to the Socket.IO server. If the connection is not
+	 * established, the call will be buffered and sent as soon as it is
+	 * possible.
+	 * 
+	 * @param event
+	 *            the event name
+	 * @param ack
+	 *            an acknowledge implementation
+	 * @param args
+	 *            the arguments
+	 */
+	public void emit(final String event, IOAcknowledge ack,
+			final Object... args) {
+		this.connection.emit(this, event, ack, args);
 	}
 
 	/**
@@ -223,7 +240,19 @@ public class SocketIO {
 	 *            the JSON object
 	 */
 	public void send(final JSONObject json) {
-		this.connection.send(this, json);
+		this.connection.send(this, null, json);
+	}
+
+	/**
+	 * Send JSON data to the Socket.io server.
+	 * 
+	 * @param ack
+	 *            an acknowledge implementation
+	 * @param json
+	 *            the JSON object
+	 */
+	public void send(IOAcknowledge ack, final JSONObject json) {
+		this.connection.send(this, ack, json);
 	}
 
 	/**
@@ -233,7 +262,19 @@ public class SocketIO {
 	 *            the message String
 	 */
 	public void send(final String message) {
-		this.connection.send(this, message);
+		this.connection.send(this, null, message);
+	}
+
+	/**
+	 * Send JSON data to the Socket.io server.
+	 * 
+	 * @param ack
+	 *            an acknowledge implementation
+	 * @param json
+	 *            the JSON object
+	 */
+	public void send(IOAcknowledge ack, final String message) {
+		this.connection.send(this, ack, message);
 	}
 
 	/**
@@ -246,13 +287,19 @@ public class SocketIO {
 	/**
 	 * Triggers the transport to reconnect.
 	 * 
-	 * This had become useful on some android devices which
-	 * do not shut down tcp-connections when switching from HSDPA to Wifi
+	 * This had become useful on some android devices which do not shut down
+	 * tcp-connections when switching from HSDPA to Wifi
 	 */
 	public void reconnect() {
 		this.connection.reconnect();
 	}
 
+	/**
+	 * Returns, if a connection is established at the moment
+	 * 
+	 * @return true if a connection is established, false if the transport is
+	 *         not connected or currently connecting
+	 */
 	public boolean isConnected() {
 		return this.connection.isConnected();
 	}

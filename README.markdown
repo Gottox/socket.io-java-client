@@ -72,6 +72,14 @@ For further informations, read the [Javadoc](http://s01.de/~tox/hgexport/socket.
  * [Class SocketIO](http://s01.de/~tox/hgexport/socket.io-java-client/io/socket/SocketIO.html)
  * [Interface IOCallback](http://s01.de/~tox/hgexport/socket.io-java-client/io/socket/IOCallback.html)
 
+## Is it compliant?
+
+There are some edges which aren't fully compliant to the specs or - to be more precise - where the standard is
+a little vague:
+
+* socket.io-java-client supports only JSONObjects or null-values as event arguments. Another datatype results in an Exception.
+This was done to keep the API simple.
+
 ## What is the architecture?
 Read this if you want to investigate in socket.io-java-client.
 
