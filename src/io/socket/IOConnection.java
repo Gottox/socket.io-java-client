@@ -268,7 +268,7 @@ public class IOConnection {
 						array.put(o == null ? JSONObject.NULL : o);
 					} catch (Exception e) {
 						error(new SocketIOException(
-								"You can only put values in IOAcknowledge.onAcknowlede() which can be handled by JSONArray.put()",
+								"You can only put values in IOAcknowledge.ack() which can be handled by JSONArray.put()",
 								e));
 					}
 
