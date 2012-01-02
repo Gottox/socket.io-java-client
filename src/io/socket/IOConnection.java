@@ -258,6 +258,7 @@ public class IOConnection {
 		if (message.getId().endsWith("+") == false)
 			return null;
 		final String id = message.getId();
+		final String endPount = message.getEndpoint();
 		return new IOAcknowledge() {
 			@Override
 			public void ack(Object... args) {
@@ -272,7 +273,7 @@ public class IOConnection {
 					}
 
 				}
-				IOMessage ackMsg = new IOMessage(IOMessage.TYPE_ACK, null, id
+				IOMessage ackMsg = new IOMessage(IOMessage.TYPE_ACK, endPount, id
 						+ array.toString());
 				sendPlain(ackMsg.toString());
 			}
