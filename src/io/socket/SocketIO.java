@@ -270,8 +270,8 @@ public class SocketIO {
 	 * 
 	 * @param ack
 	 *            an acknowledge implementation
-	 * @param json
-	 *            the JSON object
+	 * @param message
+	 *            the message String
 	 */
 	public void send(IOAcknowledge ack, final String message) {
 		this.connection.send(this, ack, message);

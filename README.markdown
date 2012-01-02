@@ -27,12 +27,12 @@ Using socket.io-java-client is quite simple. But lets see:
 	SocketIO socket = new IOSocket("http://127.0.0.1:3001")
 	socket.connect(new IOCallback() {
 			@Override
-			public void onMessage(JSONObject json) {
+			public void onMessage(JSONObject json, IOAcknowleged ack) {
 				System.out.println("We received a message: " + json.toString(2));
 			}
 			
 			@Override
-			public void onMessage(String data) {
+			public void onMessage(String data, IOAcknowleged ack) {
 				System.out.println("We received a message:" + data);
 			}
 			
@@ -54,8 +54,9 @@ Using socket.io-java-client is quite simple. But lets see:
 			}
 			
 			@Override
-			public void on(String event, JSONObject... args) {
+			public void on(String event, IOAcknowleged ack, JSONObject... args) {
 				try {
+					ack.ack("Roger that!");
 					socket.emit("answer", new JSONObject().put("msg", "Hello again Socket.io!"));
 				} catch (JSONException e) {
 					e.printStackTrace();
