@@ -27,7 +27,7 @@ Using socket.io-java-client is quite simple. But lets see:
 	SocketIO socket = new IOSocket("http://127.0.0.1:3001")
 	socket.connect(new IOCallback() {
 			@Override
-			public void onMessage(JSONObject json, IOAcknowleged ack) {
+			public void onMessage(JSONObject json, IOAcknowledge ack) {
 				System.out.println("We received a message: " + json.toString(2));
 			}
 			
@@ -54,7 +54,7 @@ Using socket.io-java-client is quite simple. But lets see:
 			}
 			
 			@Override
-			public void on(String event, IOAcknowlege ack, Object... args) {
+			public void on(String event, IOAcknowledge ack, Object... args) {
 				try {
 					ack.ack("Roger that!");
 					socket.emit("answer", new JSONObject().put("msg", "Hello again Socket.io!"));
