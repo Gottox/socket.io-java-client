@@ -54,7 +54,7 @@ Using socket.io-java-client is quite simple. But lets see:
 			}
 			
 			@Override
-			public void on(String event, IOAcknowleged ack, Object... args) {
+			public void on(String event, IOAcknowlege ack, Object... args) {
 				try {
 					ack.ack("Roger that!");
 					socket.emit("answer", new JSONObject().put("msg", "Hello again Socket.io!"));
