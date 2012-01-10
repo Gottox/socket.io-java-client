@@ -188,7 +188,16 @@ This Library was designed with portability in mind.
 * __Android__ is fully supported.
 * __JRE__ is fully supported.
 * __GWT__ does not work at the moment, but a port would be possible.
+* __JavaME__ untested.
 * ... is there anything else out there?
+
+## TODO
+socket.io-java-client works quite well for stable connections, but it has some improvable behavior on laggy connections.
+Therefor, I'm aiming to change some internals:
+
+* Replace all TimerTasks with one BackgroundThread per IOTransport
+* Replace state variables with a clean state machine.
+* The IOTransport should be automaticly reconnected if no keepalive package is received within the timeout.
 
 ## License - the boring stuff...
 

@@ -34,6 +34,14 @@ import org.json.JSONObject;
  * The Class IOConnection.
  */
 public class IOConnection {
+	private static final int STATE_INIT = 0;
+	private static final int STATE_HANDSHAKE = 1;
+	private static final int STATE_CONNECTING = 2;
+	private static final int STATE_READY = 3;
+	private static final int STATE_INTERRUPTED = 4;
+	private static final int STATE_DISCONNECTING = 5;
+	private static final int STATE_INVALID = 6;
+	private int state = STATE_INIT;
 
 	/** Socket.io path. */
 	public static final String SOCKET_IO_1 = "/socket.io/1/";
@@ -70,12 +78,6 @@ public class IOConnection {
 
 	/** The connect thread handling authentication. */
 	private Thread connectThread = null;
-
-	/** Indicates if a connection is currently available. */
-	private boolean connected = false;
-
-	/** true if the connection should be shut down immediately. */
-	private boolean wantToDisconnect = false;
 
 	/**
 	 * The first socket to be connected. the socket.io server does not send a
@@ -127,7 +129,7 @@ public class IOConnection {
 		 */
 		@Override
 		public void run() {
-			wantToDisconnect = true;
+			state = STATE_DISCONNECTING;
 			if (reconnectTimer != null) {
 				reconnectTimer.cancel();
 				reconnectTimer = null;
@@ -163,31 +165,16 @@ public class IOConnection {
 	 * The Class ConnectThread. Handles connecting to the server with an
 	 * {@link IOTransport}
 	 */
-	private class ConnectThread extends Thread {
+	private class BackgroundThread extends Thread {
 
 		/**
 		 * Tries handshaking if necessary and connects with corresponding
 		 * transport afterwards.
 		 */
 		public void run() {
-			if (transport != null)
-				return;
-
-			try {
-				if (sessionId == null) {
-					System.out.println("Handshaking");
-					handshake();
-				} else
-					System.out.println("Try to reconnect");
-				connectTransport();
-				System.out.println("Transport connected.");
-
-			} catch (IOException e) {
-				error(new SocketIOException(
-						"Error while handshaking. This could be caused by insufficient rights or network problems.",
-						e));
-			}
-			connectThread = null;
+			if(state == STATE_INIT)
+				handshake();
+			connectTransport();
 		}
 
 		/**
@@ -196,22 +183,30 @@ public class IOConnection {
 		 * @throws IOException
 		 *             Signals that an I/O exception has occurred.
 		 */
-		private void handshake() throws IOException {
-			URL url = new URL(IOConnection.this.url.toString() + SOCKET_IO_1);
+		private void handshake() {
+			URL url;
 			String response;
-			URLConnection connection = url.openConnection();
-			connection.setConnectTimeout(connectTimeout);
-			connection.setReadTimeout(connectTimeout);
+			URLConnection connection;
+			try {
+				state = STATE_HANDSHAKE;
+				url = new URL(IOConnection.this.url.toString() + SOCKET_IO_1);
+				connection = url.openConnection();
+				connection.setConnectTimeout(connectTimeout);
+				connection.setReadTimeout(connectTimeout);
 
-			InputStream stream = connection.getInputStream();
-			Scanner in = new Scanner(stream);
-			response = in.nextLine();
-			if (response.contains(":")) {
-				String[] data = response.split(":");
-				heartbeatTimeout = Long.parseLong(data[1]) * 1000;
-				closingTimeout = Long.parseLong(data[2]) * 1000;
-				protocols = Arrays.asList(data[3].split(","));
-				sessionId = data[0];
+				InputStream stream = connection.getInputStream();
+				Scanner in = new Scanner(stream);
+				response = in.nextLine();
+				if (response.contains(":")) {
+					String[] data = response.split(":");
+					heartbeatTimeout = Long.parseLong(data[1]) * 1000;
+					closingTimeout = Long.parseLong(data[2]) * 1000;
+					protocols = Arrays.asList(data[3].split(","));
+					sessionId = data[0];
+				}
+			} catch (IOException e) {
+				state = STATE_INVALID;
+				error(new SocketIOException("Error while handshaking", e));
 			}
 		}
 
@@ -219,12 +214,14 @@ public class IOConnection {
 		 * Connect transport.
 		 */
 		private void connectTransport() {
+			if(state == STATE_INVALID)
+				return;
+			state = STATE_CONNECTING;
 			if (protocols.contains(WebsocketTransport.TRANSPORT_NAME))
 				transport = WebsocketTransport.create(url, IOConnection.this);
 			else
 				error(new SocketIOException(
 						"Server supports no available transports. You should reconfigure the server to support a available transport"));
-
 			transport.connect();
 		}
 
@@ -273,8 +270,8 @@ public class IOConnection {
 					}
 
 				}
-				IOMessage ackMsg = new IOMessage(IOMessage.TYPE_ACK, endPoint, id
-						+ array.toString());
+				IOMessage ackMsg = new IOMessage(IOMessage.TYPE_ACK, endPoint,
+						id + array.toString());
 				sendPlain(ackMsg.toString());
 			}
 		};
@@ -327,7 +324,7 @@ public class IOConnection {
 	 */
 	private void connect() {
 		if (connectThread == null) {
-			connectThread = new ConnectThread();
+			connectThread = new BackgroundThread();
 			connectThread.start();
 		}
 	}
@@ -363,7 +360,8 @@ public class IOConnection {
 	 */
 	private void cleanup() {
 		System.out.println("Clean up");
-		wantToDisconnect = true;
+		if(state != STATE_INVALID)
+			state = STATE_DISCONNECTING;
 		if (transport != null)
 			transport.disconnect();
 		sockets.clear();
@@ -403,7 +401,7 @@ public class IOConnection {
 	 */
 	private void sendPlain(String text) {
 		synchronized (outputBuffer) {
-			if (connected)
+			if (state == STATE_READY)
 				try {
 					System.out.println("> " + text);
 					transport.send(text);
@@ -430,7 +428,7 @@ public class IOConnection {
 	 * {@link IOTransport} calls this when a connection is established.
 	 */
 	public void transportConnected() {
-		connected = true;
+		state = STATE_READY;
 		if (reconnectTimeoutTimer != null) {
 			reconnectTimeoutTimer.cancel();
 		}
@@ -461,7 +459,7 @@ public class IOConnection {
 	public void transportDisconnected() {
 		System.out.println("Disconnect");
 		this.lastException = null;
-		connected = false;
+		state = STATE_INTERRUPTED;
 		reconnect();
 	}
 
@@ -475,7 +473,7 @@ public class IOConnection {
 	public void transportError(Exception error) {
 		System.out.println("Error");
 		this.lastException = error;
-		connected = false;
+		state = STATE_INTERRUPTED;
 		reconnect();
 	}
 
@@ -585,9 +583,8 @@ public class IOConnection {
 				} catch (JSONException e) {
 					warning("Received malformated Acknowledge data!");
 				}
-			}
-			else if(data.length == 1){
-				sendPlain("6:::"+data[0]);
+			} else if (data.length == 1) {
+				sendPlain("6:::" + data[0]);
 			}
 			break;
 		case IOMessage.TYPE_ERROR:
@@ -617,11 +614,11 @@ public class IOConnection {
 	 * do not shut down TCP-connections when switching from HSDPA to Wifi
 	 */
 	public void reconnect() {
-		if (wantToDisconnect == false) {
+		if (state != STATE_INVALID) {
 			if (transport != null)
 				invalidateTransport();
 			transport = null;
-			connected = false;
+			state = STATE_INTERRUPTED;
 			if (reconnectTimeoutTimer == null) {
 				reconnectTimeoutTimer = new Timer("reconnectTimeoutTimer");
 				reconnectTimeoutTimer.schedule(new ReconnectTimeoutTask(),
@@ -775,6 +772,6 @@ public class IOConnection {
 	 * @return true, if is connected
 	 */
 	public boolean isConnected() {
-		return connected;
+		return state == STATE_READY;
 	}
 }
