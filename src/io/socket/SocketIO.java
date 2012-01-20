@@ -177,8 +177,7 @@ public class SocketIO {
 			if (this.namespace.equals("/")) {
 				this.namespace = "";
 			}
-			this.connection = IOConnection.create(origin);
-			this.connection.connect(this);
+			this.connection = IOConnection.register(origin, this);
 			return true;
 		}
 		return false;
@@ -281,7 +280,7 @@ public class SocketIO {
 	 * Disconnect the socket.
 	 */
 	public void disconnect() {
-		this.connection.disconnect(this);
+		this.connection.unregister(this);
 	}
 
 	/**

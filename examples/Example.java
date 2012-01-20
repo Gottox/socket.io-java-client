@@ -32,7 +32,8 @@ public class Example {
 		
 		@Override
 		public void onError(SocketIOException socketIOException) {
-			
+			System.out.println("Error");
+			socketIOException.printStackTrace();
 		}
 		
 		@Override
