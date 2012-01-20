@@ -195,9 +195,7 @@ This Library was designed with portability in mind.
 socket.io-java-client works quite well for stable connections, but it has some improvable behavior on laggy connections.
 Therefor, I'm aiming to change some internals:
 
-* Replace all TimerTasks with one BackgroundThread per IOTransport
-* Replace state variables with a clean state machine.
-* The IOTransport should be automaticly reconnected if no keepalive package is received within the timeout.
+* Socket.io needs a testing framework.
 
 ## License - the boring stuff...
 
