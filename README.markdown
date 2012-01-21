@@ -192,10 +192,9 @@ This Library was designed with portability in mind.
 * ... is there anything else out there?
 
 ## TODO
-socket.io-java-client works quite well for stable connections, but it has some improvable behavior on laggy connections.
-Therefor, I'm aiming to change some internals:
 
 * Socket.io needs a testing framework.
+* XHR Transport for webservers not supporting websockets. (**WIP**)
 
 ## License - the boring stuff...
 
