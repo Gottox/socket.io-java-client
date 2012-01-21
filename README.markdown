@@ -24,7 +24,7 @@ Using socket.io-java-client is quite simple. But lets see:
 
 ``` java
 	// Initialise a socket:
-	SocketIO socket = new IOSocket("http://127.0.0.1:3001")
+	SocketIO socket = new IOSocket("http://127.0.0.1:3001");
 	socket.connect(new IOCallback() {
 			@Override
 			public void onMessage(JSONObject json, IOAcknowledge ack) {
