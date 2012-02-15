@@ -9,6 +9,7 @@
 package io.socket;
 
 import io.socket.transports.WebsocketTransport;
+import io.socket.transports.XhrTransport;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -22,6 +23,7 @@ import java.util.List;
 import java.util.Scanner;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -31,28 +33,28 @@ import org.json.JSONObject;
  * The Class IOConnection.
  */
 public class IOConnection {
-	
+
 	/** The Constant STATE_INIT. */
 	private static final int STATE_INIT = 0;
-	
+
 	/** The Constant STATE_HANDSHAKE. */
 	private static final int STATE_HANDSHAKE = 1;
-	
+
 	/** The Constant STATE_CONNECTING. */
 	private static final int STATE_CONNECTING = 2;
-	
+
 	/** The Constant STATE_READY. */
 	private static final int STATE_READY = 3;
-	
+
 	/** The Constant STATE_INTERRUPTED. */
 	private static final int STATE_INTERRUPTED = 4;
-	
+
 	/** The Constant STATE_DISCONNECTING. */
 	private static final int STATE_DISCONNECTING = 5;
-	
+
 	/** The Constant STATE_INVALID. */
 	private static final int STATE_INVALID = 6;
-	
+
 	/** The state. */
 	private int state = STATE_INIT;
 
@@ -84,7 +86,7 @@ public class IOConnection {
 	private List<String> protocols;
 
 	/** The output buffer used to cache messages while (re-)connecting. */
-	private LinkedList<String> outputBuffer = new LinkedList<String>();
+	private ConcurrentLinkedQueue<String> outputBuffer = new ConcurrentLinkedQueue<String>();
 
 	/** The sockets of this connection. */
 	private HashMap<String, SocketIO> sockets = new HashMap<String, SocketIO>();
@@ -116,11 +118,15 @@ public class IOConnection {
 	/** true if there's already a keepalive in {@link #outputBuffer}. */
 	private boolean keepAliveInQueue;
 
-	/** The heartbeat timeout task. Only null before connection has been initialised. */
-	private HearbeatTimeoutTask heartbeatTimeoutTask;
-	
 	/**
-	 * The Class HearbeatTimeoutTask. Handles dropping this IOConnection if no heartbeat is received within life time.
+	 * The heartbeat timeout task. Only null before connection has been
+	 * initialised.
+	 */
+	private HearbeatTimeoutTask heartbeatTimeoutTask;
+
+	/**
+	 * The Class HearbeatTimeoutTask. Handles dropping this IOConnection if no
+	 * heartbeat is received within life time.
 	 */
 	private class HearbeatTimeoutTask extends TimerTask {
 
@@ -131,7 +137,7 @@ public class IOConnection {
 		 */
 		@Override
 		public void run() {
-			state = STATE_INVALID;
+			setState(STATE_INVALID);
 			error(new SocketIOException(
 					"Timeout Error. No heartbeat from server within life time of the socket. closing.",
 					lastException));
@@ -140,7 +146,7 @@ public class IOConnection {
 
 	/** The reconnect task. Null if no reconnection is in progress. */
 	private ReconnectTask reconnectTask = null;
-	
+
 	/**
 	 * The Class ReconnectTask. Handles reconnect attempts
 	 */
@@ -160,16 +166,15 @@ public class IOConnection {
 			}
 		}
 	}
-	
+
 	/** The heart beat task. */
 	final TimerTask heartBeatTask = new TimerTask() {
-		
+
 		@Override
 		public void run() {
-			
+
 		}
 	};
-	
 
 	/**
 	 * The Class ConnectThread. Handles connecting to the server with an
@@ -183,27 +188,27 @@ public class IOConnection {
 		public ConnectThread() {
 			super("ConnectThread");
 		}
-		
+
 		/**
 		 * Tries handshaking if necessary and connects with corresponding
 		 * transport afterwards.
 		 */
 		public void run() {
-			if(state == STATE_INIT)
+			if (IOConnection.this.getState() == STATE_INIT)
 				handshake();
 			connectTransport();
 		}
 
 		/**
 		 * Handshake.
-		 *
+		 * 
 		 */
 		private void handshake() {
 			URL url;
 			String response;
 			URLConnection connection;
 			try {
-				state = STATE_HANDSHAKE;
+				setState(STATE_HANDSHAKE);
 				url = new URL(IOConnection.this.url.toString() + SOCKET_IO_1);
 				connection = url.openConnection();
 				connection.setConnectTimeout(connectTimeout);
@@ -220,7 +225,6 @@ public class IOConnection {
 					sessionId = data[0];
 				}
 			} catch (IOException e) {
-				state = STATE_INVALID;
 				error(new SocketIOException("Error while handshaking", e));
 			}
 		}
@@ -229,9 +233,11 @@ public class IOConnection {
 
 	/**
 	 * Creates a new connection or returns the corresponding one.
-	 *
-	 * @param origin the origin
-	 * @param socket the socket
+	 * 
+	 * @param origin
+	 *            the origin
+	 * @param socket
+	 *            the socket
 	 * @return a IOConnection object
 	 */
 	static public IOConnection register(String origin, SocketIO socket) {
@@ -239,22 +245,23 @@ public class IOConnection {
 		if (connection == null) {
 			connection = new IOConnection(origin, socket);
 			connections.put(origin, connection);
-		}
-		else {
+		} else {
 			connection.register(socket);
 		}
 		return connection;
 	}
-	
+
 	/**
 	 * Connect transport.
 	 */
 	private void connectTransport() {
-		if(state == STATE_INVALID)
+		if (getState() == STATE_INVALID)
 			return;
-		state = STATE_CONNECTING;
+		setState(STATE_CONNECTING);
 		if (protocols.contains(WebsocketTransport.TRANSPORT_NAME))
-			transport = WebsocketTransport.create(url, IOConnection.this);
+			transport = WebsocketTransport.create(url, this);
+		else if (protocols.contains(XhrTransport.TRANSPORT_NAME))
+			transport = XhrTransport.create(url, this);
 		else
 			error(new SocketIOException(
 					"Server supports no available transports. You should reconfigure the server to support a available transport"));
@@ -264,8 +271,9 @@ public class IOConnection {
 	/**
 	 * Creates a new {@link IOAcknowledge} instance which sends its arguments
 	 * back to the server.
-	 *
-	 * @param message the message
+	 * 
+	 * @param message
+	 *            the message
 	 * @return a ne {@link IOAcknowledge} instance
 	 */
 	private IOAcknowledge remoteAcknowledge(IOMessage message) {
@@ -296,9 +304,11 @@ public class IOConnection {
 
 	/**
 	 * Synthesize ack.
-	 *
-	 * @param message the message
-	 * @param ack the ack
+	 * 
+	 * @param message
+	 *            the message
+	 * @param ack
+	 *            the ack
 	 */
 	private void synthesizeAck(IOMessage message, IOAcknowledge ack) {
 		if (ack != null) {
@@ -310,9 +320,11 @@ public class IOConnection {
 
 	/**
 	 * Instantiates a new IOConnection.
-	 *
-	 * @param url the URL
-	 * @param socket the socket
+	 * 
+	 * @param url
+	 *            the URL
+	 * @param socket
+	 *            the socket
 	 */
 	private IOConnection(String url, SocketIO socket) {
 		try {
@@ -328,8 +340,9 @@ public class IOConnection {
 
 	/**
 	 * Populates an error to the connected {@link IOCallback}s and shuts down.
-	 *
-	 * @param e an exception
+	 * 
+	 * @param e
+	 *            an exception
 	 */
 	protected void error(SocketIOException e) {
 		for (SocketIO socket : sockets.values()) {
@@ -340,8 +353,9 @@ public class IOConnection {
 
 	/**
 	 * Connects a socket to the IOConnection.
-	 *
-	 * @param socket the socket to be connected
+	 * 
+	 * @param socket
+	 *            the socket to be connected
 	 */
 	public void register(SocketIO socket) {
 		String namespace = socket.getNamespace();
@@ -365,12 +379,12 @@ public class IOConnection {
 	 * Cleanup. IOConnection is not usable after this calling this.
 	 */
 	private void cleanup() {
-		if(state != STATE_INVALID)
-			state = STATE_DISCONNECTING;
+		setState(STATE_INVALID);
 		if (transport != null)
 			transport.disconnect();
 		sockets.clear();
 		connections.remove(urlStr);
+		System.out.println("Cleanup");
 		backgroundTimer.cancel();
 	}
 
@@ -399,7 +413,7 @@ public class IOConnection {
 	 */
 	private void sendPlain(String text) {
 		synchronized (outputBuffer) {
-			if (state == STATE_READY)
+			if (getState() == STATE_READY)
 				try {
 					System.out.println("> " + text);
 					transport.send(text);
@@ -425,21 +439,22 @@ public class IOConnection {
 	 * Reset timeout.
 	 */
 	private void resetTimeout() {
-		if(heartbeatTimeoutTask != null) {
+		if (heartbeatTimeoutTask != null) {
 			heartbeatTimeoutTask.cancel();
 		}
 		heartbeatTimeoutTask = new HearbeatTimeoutTask();
-		backgroundTimer.schedule(heartbeatTimeoutTask,	closingTimeout + heartbeatTimeout);
+		backgroundTimer.schedule(heartbeatTimeoutTask, closingTimeout
+				+ heartbeatTimeout);
 	}
-	
+
 	/**
 	 * Transport connected.
-	 *
+	 * 
 	 * {@link IOTransport} calls this when a connection is established.
 	 */
 	public void transportConnected() {
-		state = STATE_READY;
-		if(reconnectTask != null) {
+		setState(STATE_READY);
+		if (reconnectTask != null) {
 			reconnectTask.cancel();
 			reconnectTask = null;
 		}
@@ -449,55 +464,64 @@ public class IOConnection {
 			firstSocket = null;
 		}
 		synchronized (outputBuffer) {
-			LinkedList<String> outputBuffer = this.outputBuffer;
-			this.outputBuffer = new LinkedList<String>();
-			if (transport.canSendBulk())
+			if (transport.canSendBulk()) {
+				ConcurrentLinkedQueue<String> outputBuffer = this.outputBuffer;
+				this.outputBuffer = new ConcurrentLinkedQueue<String>();
 				try {
 					transport.sendBulk(outputBuffer
 							.toArray(new String[outputBuffer.size()]));
 				} catch (IOException e) {
 					this.outputBuffer = outputBuffer;
 				}
-			this.keepAliveInQueue = false;
-			for (String text : outputBuffer) {
-				sendPlain(text);
+			} else {
+				String text;
+				while ((text = outputBuffer.poll()) != null)
+					sendPlain(text);
 			}
+			this.keepAliveInQueue = false;
 		}
 	}
 
 	/**
 	 * Transport disconnected.
-	 *
+	 * 
 	 * {@link IOTransport} calls this when a connection has been shut down.
 	 */
 	public void transportDisconnected() {
 		this.lastException = null;
-		state = STATE_INTERRUPTED;
 		reconnect();
 	}
 
 	/**
 	 * Transport error.
-	 *
-	 * @param error the error
-	 * {@link IOTransport} calls this, when an exception has occured and the
-	 * transport is not usable anymore.
+	 * 
+	 * @param error
+	 *            the error {@link IOTransport} calls this, when an exception
+	 *            has occured and the transport is not usable anymore.
 	 */
 	public void transportError(Exception error) {
 		this.lastException = error;
-		state = STATE_INTERRUPTED;
+		setState(STATE_INTERRUPTED);
 		reconnect();
 	}
 
 	/**
 	 * Transport message.
-	 *
-	 * @param text the text
-	 * {@link IOTransport} calls this, when a message has been received.
+	 * 
+	 * @param text
+	 *            the text {@link IOTransport} calls this, when a message has
+	 *            been received.
 	 */
 	public void transportMessage(String text) {
 		System.out.println("< " + text);
-		IOMessage message = new IOMessage(text);
+		IOMessage message;
+		try {
+			message = new IOMessage(text);
+		} catch (Exception e) {
+			error(new SocketIOException("Garbage from server: " + text, e));
+			return;
+		}
+		resetTimeout();
 		switch (message.getType()) {
 		case IOMessage.TYPE_DISCONNECT:
 			if (message.getEndpoint().equals("")) {
@@ -522,7 +546,6 @@ public class IOConnection {
 			break;
 		case IOMessage.TYPE_HEARTBEAT:
 			sendPlain("2::");
-			resetTimeout();
 			break;
 		case IOMessage.TYPE_MESSAGE:
 			try {
@@ -627,16 +650,18 @@ public class IOConnection {
 	 * do not shut down TCP-connections when switching from HSDPA to Wifi
 	 */
 	public void reconnect() {
-		if (state != STATE_INVALID) {
-			if (transport != null)
-				invalidateTransport();
-			transport = null;
-			state = STATE_INTERRUPTED;
-			if(reconnectTask != null) {
-				reconnectTask.cancel();
+		synchronized (this) {
+			if (getState() != STATE_INVALID) {
+				if (transport != null)
+					invalidateTransport();
+				transport = null;
+				setState(STATE_INTERRUPTED);
+				if (reconnectTask != null) {
+					reconnectTask.cancel();
+				}
+				reconnectTask = new ReconnectTask();
+				backgroundTimer.schedule(reconnectTask, 1000);
 			}
-			reconnectTask = new ReconnectTask();
-			backgroundTimer.schedule(reconnectTask, 1000);
 		}
 	}
 
@@ -669,9 +694,9 @@ public class IOConnection {
 
 	/**
 	 * Returns the session id. This should be called from the
-	 *
-	 * @return the session id
-	 * {@link IOTransport} to connect to the right Session.
+	 * 
+	 * @return the session id {@link IOTransport} to connect to the right
+	 *         Session.
 	 */
 	public String getSessionId() {
 		return sessionId;
@@ -721,10 +746,13 @@ public class IOConnection {
 
 	/**
 	 * sends a String message from {@link SocketIO} to the {@link IOTransport}.
-	 *
-	 * @param socket the socket
-	 * @param ack acknowledge package which can be called from the server
-	 * @param text the text
+	 * 
+	 * @param socket
+	 *            the socket
+	 * @param ack
+	 *            acknowledge package which can be called from the server
+	 * @param text
+	 *            the text
 	 */
 	public void send(SocketIO socket, IOAcknowledge ack, String text) {
 		IOMessage message = new IOMessage(IOMessage.TYPE_MESSAGE,
@@ -735,10 +763,13 @@ public class IOConnection {
 
 	/**
 	 * sends a JSON message from {@link SocketIO} to the {@link IOTransport}.
-	 *
-	 * @param socket the socket
-	 * @param ack acknowledge package which can be called from the server
-	 * @param json the json
+	 * 
+	 * @param socket
+	 *            the socket
+	 * @param ack
+	 *            acknowledge package which can be called from the server
+	 * @param json
+	 *            the json
 	 */
 	public void send(SocketIO socket, IOAcknowledge ack, JSONObject json) {
 		IOMessage message = new IOMessage(IOMessage.TYPE_JSON_MESSAGE,
@@ -749,11 +780,15 @@ public class IOConnection {
 
 	/**
 	 * emits an event from {@link SocketIO} to the {@link IOTransport}.
-	 *
-	 * @param socket the socket
-	 * @param event the event
-	 * @param ack acknowledge package which can be called from the server
-	 * @param args the arguments to be send
+	 * 
+	 * @param socket
+	 *            the socket
+	 * @param event
+	 *            the event
+	 * @param ack
+	 *            acknowledge package which can be called from the server
+	 * @param args
+	 *            the arguments to be send
 	 */
 	public void emit(SocketIO socket, String event, IOAcknowledge ack,
 			Object... args) {
@@ -777,6 +812,18 @@ public class IOConnection {
 	 * @return true, if is connected
 	 */
 	public boolean isConnected() {
-		return state == STATE_READY;
+		return getState() == STATE_READY;
+	}
+
+	public int getState() {
+		synchronized (this) {
+			return state;
+		}
+	}
+
+	public void setState(int state) {
+		synchronized (this) {
+			this.state = state;
+		}
 	}
 }

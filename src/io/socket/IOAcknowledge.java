@@ -14,7 +14,7 @@ package io.socket;
 public interface IOAcknowledge {
 	
 	/**
-	 * Acknowledges a package
+	 * Acknowledges a package.
 	 *
 	 * @param args the args
 	 */

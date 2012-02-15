@@ -63,6 +63,9 @@ public class IOMessage {
 	/** The field values */
 	String[] fields = new String[NUM_FIELDS];
 
+	/** Type */
+	int type;
+	
 	/**
 	 * Instantiates a new IOMessage by given data.
 	 * 
@@ -76,8 +79,11 @@ public class IOMessage {
 	 *            the data
 	 */
 	public IOMessage(int type, String id, String namespace, String data) {
-		this(type, namespace, data);
 		this.fields[FIELD_ID] = id;
+		this.fields[FIELD_TYPE] = "" + type;
+		this.type = type;
+		this.fields[FIELD_ENDPOINT] = namespace;
+		this.fields[FIELD_DATA] = data;
 	}
 
 	/**
@@ -91,9 +97,7 @@ public class IOMessage {
 	 *            the data
 	 */
 	public IOMessage(int type, String namespace, String data) {
-		this.fields[FIELD_TYPE] = "" + type;
-		this.fields[FIELD_ENDPOINT] = namespace;
-		this.fields[FIELD_DATA] = data;
+		this(type, namespace, data, null);
 	}
 
 	/**
@@ -107,6 +111,8 @@ public class IOMessage {
 		String[] fields = message.split(":", NUM_FIELDS);
 		for (int i = 0; i < fields.length; i++) {
 			this.fields[i] = fields[i];
+			if(i == FIELD_TYPE)
+				this.type = Integer.parseInt(fields[i]);
 		}
 	}
 
@@ -130,7 +136,7 @@ public class IOMessage {
 	 * @return the type
 	 */
 	public int getType() {
-		return Integer.parseInt(fields[FIELD_TYPE]);
+		return type;
 	}
 
 	/**
