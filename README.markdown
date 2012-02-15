@@ -15,6 +15,7 @@ Features:
  * __transparent reconnecting__ - The API cares about re-establishing the connection to the server
    when the transport is interrupted.
  * __easy to use API__ - implement an interface, instantiate a class - you're done.
+ * __robust protocols__ - if websockets are not available, Socket.IO-Client can connect by XHR, too.
  * __output buffer__ - send data while the transport is still connecting. No problem, socket.io-java-client handles that.
  * __meaningful exceptions__ - If something goes wrong, SocketIO tries to throw meaningful exceptions with hints for fixing.
 
@@ -194,7 +195,7 @@ This Library was designed with portability in mind.
 ## TODO
 
 * Socket.io needs a testing framework.
-* XHR Transport for webservers not supporting websockets. (**WIP**)
+* If websockets are failing (due to proxy servers e.g.), use XHR automaticly instead.
 
 ## License - the boring stuff...
 
