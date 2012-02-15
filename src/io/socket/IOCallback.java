@@ -29,6 +29,7 @@ public interface IOCallback {
 	 * On message. Called when the server sends String data.
 	 *
 	 * @param data the data.
+	 * @param ack an {@link IOAcknowledge} instance, may be <code>null</code> if there's none
 	 */
 	void onMessage(String data, IOAcknowledge ack);
 	
@@ -36,6 +37,7 @@ public interface IOCallback {
 	 * On message. Called when the server sends JSON data.
 	 *
 	 * @param json JSON object sent by server.
+	 * @param ack an {@link IOAcknowledge} instance, may be <code>null</code> if there's none
 	 */
 	void onMessage(JSONObject json, IOAcknowledge ack);
 	
@@ -43,7 +45,8 @@ public interface IOCallback {
 	 * On [Event]. Called when server emits an event.
 	 *
 	 * @param event Name of the event
-	 * @param args arguments of the event
+	 * @param ack an {@link IOAcknowledge} instance, may be <code>null</code> if there's none
+	 * @param args Arguments of the event
 	 */
 	void on(String event, IOAcknowledge ack, Object... args);
 	

@@ -18,7 +18,6 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Scanner;
 import java.util.Timer;
@@ -48,9 +47,6 @@ public class IOConnection {
 
 	/** The Constant STATE_INTERRUPTED. */
 	private static final int STATE_INTERRUPTED = 4;
-
-	/** The Constant STATE_DISCONNECTING. */
-	private static final int STATE_DISCONNECTING = 5;
 
 	/** The Constant STATE_INVALID. */
 	private static final int STATE_INVALID = 6;
@@ -274,7 +270,7 @@ public class IOConnection {
 	 * 
 	 * @param message
 	 *            the message
-	 * @return a ne {@link IOAcknowledge} instance
+	 * @return an {@link IOAcknowledge} instance, may be <code>null</code> if server doesn't request one.
 	 */
 	private IOAcknowledge remoteAcknowledge(IOMessage message) {
 		if (message.getId().endsWith("+") == false)
@@ -587,7 +583,7 @@ public class IOConnection {
 				String eventName = event.getString("name");
 				try {
 					findCallback(message).on(eventName,
-							remoteAcknowledge(message), argsArray);
+							remoteAcknowledge(message), (Object[])argsArray);
 				} catch (Exception e) {
 					error(new SocketIOException(
 							"Exception was thrown in on(String, JSONObject[])"
