@@ -6,7 +6,7 @@
  * 
  * See LICENSE file for more information
  */
-package io.socket.transports;
+package io.socket;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -18,13 +18,11 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-import io.socket.IOConnection;
-import io.socket.IOTransport;
 
 /**
  * The Class XhrTransport.
  */
-public class XhrTransport implements IOTransport {
+class XhrTransport implements IOTransport {
 	
 	/** The String to identify this Transport. */
 	public static final String TRANSPORT_NAME = "xhr-polling";

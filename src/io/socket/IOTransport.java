@@ -13,7 +13,7 @@ import java.io.IOException;
 /**
  * The Interface IOTransport.
  */
-public interface IOTransport {
+interface IOTransport {
 
 	/**
 	 * Instructs the IOTransport to connect.

@@ -8,8 +8,6 @@
  */
 package io.socket;
 
-import io.socket.transports.WebsocketTransport;
-import io.socket.transports.XhrTransport;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -31,7 +29,7 @@ import org.json.JSONObject;
 /**
  * The Class IOConnection.
  */
-public class IOConnection {
+class IOConnection {
 
 	/** The Constant STATE_INIT. */
 	private static final int STATE_INIT = 0;

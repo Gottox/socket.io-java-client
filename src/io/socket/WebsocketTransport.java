@@ -6,10 +6,8 @@
  * 
  * See LICENSE file for more information
  */
-package io.socket.transports;
+package io.socket;
 
-import io.socket.IOConnection;
-import io.socket.IOTransport;
 
 import java.io.IOException;
 import java.net.URI;
@@ -21,7 +19,7 @@ import net.tootallnate.websocket.WebSocketClient;
 /**
  * The Class WebsocketTransport.
  */
-public class WebsocketTransport extends WebSocketClient implements IOTransport {
+class WebsocketTransport extends WebSocketClient implements IOTransport {
 	
 	/** Pattern used to replace http:// by ws:// respectively https:// by wss:// */
 	private final static Pattern PATTERN_HTTP = Pattern.compile("^http");
