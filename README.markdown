@@ -105,7 +105,7 @@ handled by *IOConnection*.
 
 ## How to implement a transport?
 
-An example can be found in [WebsocketTransport.java](http://github.com/Gottox/socket.io-java-client/blob/master/src/io/socket/transports/WebsocketTransport.java)
+An example can be found in [WebsocketTransport.java](http://github.com/Gottox/socket.io-java-client/blob/master/src/io/socket/WebsocketTransport.java)
 
 Create a class implementing the IOTransport interface.
 
