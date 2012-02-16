@@ -13,7 +13,7 @@ import java.util.regex.Pattern;
 /**
  * The Class IOMessage.
  */
-public class IOMessage {
+class IOMessage {
 
 	/** Message type disconnect */
 	public static final int TYPE_DISCONNECT = 0;
