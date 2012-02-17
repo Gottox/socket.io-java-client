@@ -21,7 +21,7 @@ import org.junit.Test;
 public class TestSocketIO implements IOCallback {
 	private final static String NODE = "/opt/local/bin/node";
 	private static final int PORT = 10214;
-	private static final int TIMEOUT = 200;
+	private static final int TIMEOUT = 2;
 	LinkedBlockingQueue<String> events;
 	LinkedBlockingQueue<String> outputs;
 	LinkedBlockingQueue<Object> args;
@@ -94,10 +94,20 @@ public class TestSocketIO implements IOCallback {
 
 	@After
 	public void tearDown() throws Exception {
+
 		node.destroy();
 		stderrThread.interrupt();
 		stdoutThread.interrupt();
 		node.waitFor();
+		for(String s : events) {
+			System.out.println("Event in Queue: " + s);
+		}
+		for(String line : outputs) {
+			System.out.println("Line in Queue: " + line);
+		}
+		for(Object o : args) {
+			System.out.println("Argument in Queue: " + o.toString());
+		}
 	}
 
 	void doConnect() throws Exception {
@@ -135,6 +145,7 @@ public class TestSocketIO implements IOCallback {
 	@Test
 	public void emitAndOn() throws Exception {
 		doConnect();
+		
 		String str = "TESTSTRING";
 		socket.emit("echo", str);
 		assertEquals("Test String", "on", takeEvent());
@@ -168,11 +179,11 @@ public class TestSocketIO implements IOCallback {
 	
 	@Test
 	public void namespaces() throws Exception {
-		doConnect();
 		SocketIO ns1 = new SocketIO("http://127.0.0.1:" + PORT + "/ns1", this);
 		assertEquals("onConnect", takeEvent());
-		assertEquals("onMessage_string", takeEvent());
-		assertEquals("ns1", takeArg());
+		
+		doConnect();
+		
 		ns1.disconnect();
 		assertEquals("onDisconnect", takeEvent());
 		
