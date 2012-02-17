@@ -8,7 +8,6 @@
  */
 package io.socket;
 
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
@@ -361,12 +360,12 @@ class IOConnection {
 									"Namespace '"
 											+ namespace
 											+ "' is already registered. Do not try to connect twice to the same url."));
-		else
+		else {
 			sockets.put(namespace, socket);
-		IOMessage connect = new IOMessage(
-				IOMessage.TYPE_CONNECT,
-				socket.getNamespace(), "");
-		sendPlain(connect.toString());
+			IOMessage connect = new IOMessage(IOMessage.TYPE_CONNECT,
+					socket.getNamespace(), "");
+			sendPlain(connect.toString());
+		}
 	}
 
 	/**
