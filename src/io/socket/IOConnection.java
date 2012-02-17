@@ -329,7 +329,7 @@ class IOConnection {
 			throw new RuntimeException(e);
 		}
 		firstSocket = socket;
-		register(socket);
+		sockets.put(socket.getNamespace(), socket);
 		new ConnectThread().start();
 	}
 
@@ -363,6 +363,10 @@ class IOConnection {
 											+ "' is already registered. Do not try to connect twice to the same url."));
 		else
 			sockets.put(namespace, socket);
+		IOMessage connect = new IOMessage(
+				IOMessage.TYPE_CONNECT,
+				socket.getNamespace(), "");
+		sendPlain(connect.toString());
 	}
 
 	/**
