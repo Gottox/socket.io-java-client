@@ -539,7 +539,6 @@ class IOConnection {
 				if (firstSocket != null && message.getEndpoint().equals("")) {
 					if (firstSocket.getNamespace().equals("")) {
 						firstSocket.getCallback().onConnect();
-						firstSocket = null;
 					} else {
 						IOMessage connect = new IOMessage(
 								IOMessage.TYPE_CONNECT,
@@ -548,8 +547,8 @@ class IOConnection {
 					}
 				} else {
 					findCallback(message).onConnect();
-					firstSocket = null;
 				}
+				firstSocket = null;
 			} catch (Exception e) {
 				error(new SocketIOException(
 						"Exception was thrown in onConnect()", e));
