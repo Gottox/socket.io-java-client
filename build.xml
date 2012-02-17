@@ -6,6 +6,7 @@
               as the first entry and export the buildfile again. -->
 <project basedir="." default="build" name="socket.io-java-client">
     <property environment="env"/>
+    <property name="socket.io-java-client-test.location" value="../socket.io-java-client-test"/>
     <property name="treckme.location" value="../treckme"/>
     <property name="treckme_android.location" value="../treckme_android"/>
     <property name="ECLIPSE_HOME" value="../../../../../Applications/eclipse"/>
@@ -50,6 +51,12 @@
         </javac>
     </target>
     <target description="Build all projects which reference this project. Useful to propagate changes." name="build-refprojects">
+        <ant antfile="build.xml" dir="${socket.io-java-client-test.location}" inheritAll="false" target="clean"/>
+        <ant antfile="build.xml" dir="${socket.io-java-client-test.location}" inheritAll="false" target="build">
+            <propertyset>
+                <propertyref name="build.compiler"/>
+            </propertyset>
+        </ant>
         <ant antfile="build.xml" dir="${treckme.location}" inheritAll="false" target="clean"/>
         <ant antfile="build.xml" dir="${treckme.location}" inheritAll="false" target="build">
             <propertyset>
@@ -81,4 +88,11 @@
             <classpath refid="socket.io-java-client.classpath"/>
         </java>
     </target>
+	<target name="jar" depends="build-project">
+	        <mkdir dir="jar"/>
+	        <jar destfile="jar/socketio.jar" basedir="bin">
+	            <manifest>
+	            </manifest>
+	        </jar>
+	</target>
 </project>
