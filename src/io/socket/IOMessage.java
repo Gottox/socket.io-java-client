@@ -97,7 +97,7 @@ class IOMessage {
 	 *            the data
 	 */
 	public IOMessage(int type, String namespace, String data) {
-		this(type, namespace, data, null);
+		this(type, namespace, null, data);
 	}
 
 	/**
