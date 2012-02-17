@@ -33,7 +33,7 @@ interface IOTransport {
 	 * @throws IOException
 	 *             Signals that an I/O exception has occurred.
 	 */
-	void send(String text) throws IOException;
+	void send(String text) throws Exception;
 
 	/**
 	 * return true if the IOTransport prefers to send multiple messages at a

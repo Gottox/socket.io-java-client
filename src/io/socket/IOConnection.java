@@ -268,7 +268,8 @@ class IOConnection {
 	 * 
 	 * @param message
 	 *            the message
-	 * @return an {@link IOAcknowledge} instance, may be <code>null</code> if server doesn't request one.
+	 * @return an {@link IOAcknowledge} instance, may be <code>null</code> if
+	 *         server doesn't request one.
 	 */
 	private IOAcknowledge remoteAcknowledge(IOMessage message) {
 		if (message.getId().endsWith("+") == false)
@@ -362,11 +363,6 @@ class IOConnection {
 											+ "' is already registered. Do not try to connect twice to the same url."));
 		else
 			sockets.put(namespace, socket);
-		if (socket.getNamespace() != "") {
-			IOMessage message = new IOMessage(IOMessage.TYPE_CONNECT,
-					namespace, "");
-			sendPlain(message.toString());
-		}
 	}
 
 	/**
@@ -411,7 +407,7 @@ class IOConnection {
 				try {
 					System.out.println("> " + text);
 					transport.send(text);
-				} catch (IOException e) {
+				} catch (Exception e) {
 					System.out.println("IOEx: saving");
 					outputBuffer.add(text);
 				}
@@ -453,17 +449,21 @@ class IOConnection {
 			reconnectTask = null;
 		}
 		resetTimeout();
-		if (firstSocket != null) {
-			firstSocket.getCallback().onConnect();
-			firstSocket = null;
-		}
 		synchronized (outputBuffer) {
 			if (transport.canSendBulk()) {
 				ConcurrentLinkedQueue<String> outputBuffer = this.outputBuffer;
 				this.outputBuffer = new ConcurrentLinkedQueue<String>();
 				try {
-					transport.sendBulk(outputBuffer
-							.toArray(new String[outputBuffer.size()]));
+					// DEBUG
+					String[] texts = outputBuffer
+							.toArray(new String[outputBuffer.size()]);
+					System.out.println("Bulk start:");
+					for (String text : texts) {
+						System.out.println("> " + text);
+					}
+					System.out.println("Bulk end");
+					// DEBUG END
+					transport.sendBulk(texts);
 				} catch (IOException e) {
 					this.outputBuffer = outputBuffer;
 				}
@@ -532,7 +532,20 @@ class IOConnection {
 			break;
 		case IOMessage.TYPE_CONNECT:
 			try {
-				findCallback(message).onConnect();
+				if (firstSocket != null && message.getEndpoint().equals("")) {
+					if (firstSocket.getNamespace().equals("")) {
+						firstSocket.getCallback().onConnect();
+						firstSocket = null;
+					} else {
+						IOMessage connect = new IOMessage(
+								IOMessage.TYPE_CONNECT,
+								firstSocket.getNamespace(), "");
+						sendPlain(connect.toString());
+					}
+				} else {
+					findCallback(message).onConnect();
+					firstSocket = null;
+				}
 			} catch (Exception e) {
 				error(new SocketIOException(
 						"Exception was thrown in onConnect()", e));
@@ -573,15 +586,15 @@ class IOConnection {
 			try {
 				JSONObject event = new JSONObject(message.getData());
 				JSONArray args = event.getJSONArray("args");
-				JSONObject[] argsArray = new JSONObject[args.length()];
+				Object[] argsArray = new Object[args.length()];
 				for (int i = 0; i < args.length(); i++) {
 					if (args.isNull(i) == false)
-						argsArray[i] = args.getJSONObject(i);
+						argsArray[i] = args.get(i);
 				}
 				String eventName = event.getString("name");
 				try {
 					findCallback(message).on(eventName,
-							remoteAcknowledge(message), (Object[])argsArray);
+							remoteAcknowledge(message), argsArray);
 				} catch (Exception e) {
 					error(new SocketIOException(
 							"Exception was thrown in on(String, JSONObject[])"

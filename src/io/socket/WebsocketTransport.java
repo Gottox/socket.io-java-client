@@ -14,12 +14,17 @@ import java.net.URI;
 import java.net.URL;
 import java.util.regex.Pattern;
 
-import net.tootallnate.websocket.WebSocketClient;
+import de.roderick.weberknecht.WebSocketConnection;
+import de.roderick.weberknecht.WebSocketEventHandler;
+import de.roderick.weberknecht.WebSocketException;
+import de.roderick.weberknecht.WebSocketMessage;
 
 /**
  * The Class WebsocketTransport.
  */
-class WebsocketTransport extends WebSocketClient implements IOTransport {
+class WebsocketTransport implements IOTransport, WebSocketEventHandler {
+	
+	WebSocketConnection websocket;
 	
 	/** Pattern used to replace http:// by ws:// respectively https:// by wss:// */
 	private final static Pattern PATTERN_HTTP = Pattern.compile("^http");
@@ -51,46 +56,17 @@ class WebsocketTransport extends WebSocketClient implements IOTransport {
 	 *
 	 * @param uri the uri
 	 * @param connection the connection
+	 * @throws WebSocketException 
 	 */
 	public WebsocketTransport(URI uri, IOConnection connection) {
-		super(uri);
+		try {
+			websocket = new WebSocketConnection(uri);
+		} catch (WebSocketException e) {
+			connection.transportError(e);
+			return;
+		}
 		this.connection = connection;
-	}
-
-	/* (non-Javadoc)
-	 * @see net.tootallnate.websocket.WebSocketClient#onClose()
-	 */
-	@Override
-	public void onClose() {
-		if (connection != null)
-			connection.transportDisconnected();
-	}
-
-	/* (non-Javadoc)
-	 * @see net.tootallnate.websocket.WebSocketClient#onIOError(java.io.IOException)
-	 */
-	@Override
-	public void onIOError(IOException error) {
-		if (connection != null)
-			connection.transportError(error);
-	}
-
-	/* (non-Javadoc)
-	 * @see net.tootallnate.websocket.WebSocketClient#onMessage(java.lang.String)
-	 */
-	@Override
-	public void onMessage(String message) {
-		if (connection != null)
-			connection.transportMessage(message);
-	}
-
-	/* (non-Javadoc)
-	 * @see net.tootallnate.websocket.WebSocketClient#onOpen()
-	 */
-	@Override
-	public void onOpen() {
-		if (connection != null)
-			connection.transportConnected();
+		websocket.setEventHandler(this);
 	}
 
 	/* (non-Javadoc)
@@ -99,8 +75,8 @@ class WebsocketTransport extends WebSocketClient implements IOTransport {
 	@Override
 	public void disconnect() {
 		try {
-			this.close();
-		} catch (IOException e) {
+			websocket.close();
+		} catch (Exception e) {
 			connection.transportError(e);
 		}
 	}
@@ -129,4 +105,35 @@ class WebsocketTransport extends WebSocketClient implements IOTransport {
 		connection = null;
 	}
 
+	@Override
+	public void onClose() {
+		if(connection != null)
+			connection.transportDisconnected();
+	}
+
+	@Override
+	public void onMessage(WebSocketMessage arg0) {
+		if(connection != null)
+			connection.transportMessage(arg0.getText());
+	}
+
+	@Override
+	public void onOpen() {
+		if(connection != null)
+			connection.transportConnected();
+	}
+
+	@Override
+	public void connect() {
+		try {
+			websocket.connect();
+		} catch (WebSocketException e) {
+			connection.transportError(e);
+		}
+	}
+
+	@Override
+	public void send(String text) throws Exception {
+		websocket.send(text);
+	}
 }

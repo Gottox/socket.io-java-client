@@ -73,9 +73,10 @@ class XhrTransport implements IOTransport {
 								new OutputStreamWriter(
 										urlConnection.getOutputStream()));
 						while((line = queue.peek()) != null) {
-							output.write(line);
+							output.write("ï¿½7ï¿½" + line);
 							queue.remove();
 						}
+						output.close();
 					}
 					else {
 						setBlocked(true);

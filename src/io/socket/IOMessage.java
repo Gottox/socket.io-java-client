@@ -8,7 +8,8 @@
  */
 package io.socket;
 
-import java.util.regex.Pattern;
+import java.util.Arrays;
+import java.util.Iterator;
 
 /**
  * The Class IOMessage.
@@ -57,9 +58,6 @@ class IOMessage {
 	/** Number of fields in a message. */
 	public static final int NUM_FIELDS = 4;
 
-	/** Compresses a Message by cutting of unnecessary colons at the end */
-	public static final Pattern TRIM_PATTERN = Pattern.compile(":*$");
-
 	/** The field values */
 	String[] fields = new String[NUM_FIELDS];
 
@@ -97,7 +95,7 @@ class IOMessage {
 	 *            the data
 	 */
 	public IOMessage(int type, String namespace, String data) {
-		this(type, namespace, null, data);
+		this(type, null, namespace, data);
 	}
 
 	/**
@@ -121,13 +119,15 @@ class IOMessage {
 	 */
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
-		for (String field : fields) {
+		Iterator<String> i = Arrays.asList(fields).iterator();
+		while(i.hasNext()) {
+			String field = i.next();
 			if (field != null)
-				builder.append(field + ":");
-			else
+				builder.append(field);
+			if(i.hasNext())
 				builder.append(':');
 		}
-		return TRIM_PATTERN.matcher(builder.toString()).replaceFirst("");
+		return builder.toString();
 	}
 
 	/**
