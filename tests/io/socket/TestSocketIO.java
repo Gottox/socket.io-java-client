@@ -17,7 +17,9 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
+@RunWith(io.socket.RandomBlockJUnit4ClassRunner.class)
 public class TestSocketIO implements IOCallback {
 	private final static String NODE = "/opt/local/bin/node";
 	private static final int PORT = 10214;
@@ -99,13 +101,13 @@ public class TestSocketIO implements IOCallback {
 		stderrThread.interrupt();
 		stdoutThread.interrupt();
 		node.waitFor();
-		for(String s : events) {
+		for (String s : events) {
 			System.out.println("Event in Queue: " + s);
 		}
-		for(String line : outputs) {
+		for (String line : outputs) {
 			System.out.println("Line in Queue: " + line);
 		}
-		for(Object o : args) {
+		for (Object o : args) {
 			System.out.println("Argument in Queue: " + o.toString());
 		}
 	}
@@ -119,20 +121,20 @@ public class TestSocketIO implements IOCallback {
 	void doClose() throws Exception {
 		socket.disconnect();
 		assertEquals("onDisconnect", takeEvent());
-		while(outputs.size() != 0) {
+
+		while (outputs.size() != 0) {
 			fail("Line in queue: " + outputs.poll());
 		}
-		while(events.size() != 0) {
+		while (events.size() != 0) {
 			fail("Event in queue: " + events.poll());
 		}
-		while(args.size() != 0) {
-			fail("Event in queue: " + events.poll());
+		while (args.size() != 0) {
+			fail("Arguments in queue: " + args.poll());
 		}
 	}
 
-	
 	// BEGIN TESTS
-	
+
 	@Test
 	public void send() throws Exception {
 		doConnect();
@@ -141,24 +143,24 @@ public class TestSocketIO implements IOCallback {
 		assertEquals("MESSAGE:" + str, takeLine());
 		doClose();
 	}
-	
+
 	@Test
 	public void emitAndOn() throws Exception {
 		doConnect();
-		
+
 		String str = "TESTSTRING";
 		socket.emit("echo", str);
 		assertEquals("Test String", "on", takeEvent());
 		assertEquals(str, takeArg());
-		
+
 		JSONObject obj = new JSONObject("{'foo':'bar'}");
 		socket.emit("echo", obj);
 		assertEquals("Test JSON", "on", takeEvent());
 		assertEquals(obj.toString(), takeArg().toString());
-		
+
 		doClose();
 	}
-	
+
 	@Test
 	public void emitAndMessage() throws Exception {
 		doConnect();
@@ -166,75 +168,81 @@ public class TestSocketIO implements IOCallback {
 		socket.emit("echoSend", str);
 		assertEquals("onMessage_string", events.take());
 		assertEquals(str, takeArg());
-		
+
 		/*
-		// Server sends us a string instead of a JSONObject, strange thing
-		JSONObject obj = new JSONObject("{'foo':'bar'}");
-		socket.emit("echoSend", obj);
-		assertEquals("Test JSON", "onMessage_json", takeEvent());
-		assertEquals(obj.toString(), takeArg().toString());
-		*/
+		 * // Server sends us a string instead of a JSONObject, strange thing
+		 * JSONObject obj = new JSONObject("{'foo':'bar'}");
+		 * socket.emit("echoSend", obj); assertEquals("Test JSON",
+		 * "onMessage_json", takeEvent()); assertEquals(obj.toString(),
+		 * takeArg().toString());
+		 */
 		doClose();
 	}
-	
+
 	@Test
 	public void namespaces() throws Exception {
 		SocketIO ns1 = new SocketIO("http://127.0.0.1:" + PORT + "/ns1", this);
 		assertEquals("onConnect", takeEvent());
-		
+
+		// In some very rare cases, it is possible to receive data on an socket
+		// which isn't connected yet, this sleep assures that these events
+		// aren't submitted. This is a server side problem. Maybe socket.io-java
+		// could cache these events until the server drops the connect event.
+		Thread.sleep(100);
 		doConnect();
-		
+
 		ns1.disconnect();
 		assertEquals("onDisconnect", takeEvent());
-		
+
 		SocketIO ns2 = new SocketIO("http://127.0.0.1:" + PORT + "/ns2", this);
 		assertEquals("onConnect", takeEvent());
+
 		assertEquals("onMessage_string", takeEvent());
 		assertEquals("ns2", takeArg());
+
 		ns2.disconnect();
 		assertEquals("onDisconnect", takeEvent());
 		doClose();
 	}
-	
+
 	@Test
 	public void error() throws Exception {
 		doConnect();
-		SocketIO error = new SocketIO("http://127.0.0.1:" + (PORT+1) + "/ns1", this);
+		SocketIO error = new SocketIO(
+				"http://127.0.0.1:" + (PORT + 1) + "/ns1", this);
 		assertEquals("onError", takeEvent());
 		doClose();
 	}
-	
-	// END TESTS
-	
 
+	// END TESTS
 
 	String takeEvent() throws InterruptedException {
 		String event = events.poll(TIMEOUT, TimeUnit.SECONDS);
-		if(event == null) {
+		if (event == null) {
 			fail("takeEvent Timeout!");
 		}
 		System.out.println("Event Taken: " + event);
 		return event;
 	}
-	
+
 	String takeLine() throws InterruptedException {
 		String line = outputs.poll(TIMEOUT, TimeUnit.SECONDS);
-		if(line == null) {
+		if (line == null) {
 			fail("takeLine Timeout!");
 		}
 		System.out.println("Line Taken: " + line);
 		return line;
 	}
-	
+
 	Object takeArg() throws InterruptedException {
 		Object arg = args.poll(TIMEOUT, TimeUnit.SECONDS);
-		if(arg == null) {
+		if (arg == null) {
 			fail("takeArg Timeout!");
 		}
 		System.out.println("Argument Taken: " + arg);
 		return arg;
 	}
-	
+
 	@Override
 	public void onDisconnect() {
 		events.add("onDisconnect");
