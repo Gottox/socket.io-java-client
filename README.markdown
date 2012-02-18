@@ -4,8 +4,9 @@
 
 socket.io-java-client is a simple implementation of [socket.io](http://socket.io) for Java.
 
-It uses [Java-WebSocket](https://github.com/TooTallNate/Java-WebSocket) as transport backend, but it's easy
-to write your own transport. See description below.
+It uses [Weberknecht](http://code.google.com/p/weberknecht/) as transport backend, but it's easy
+to write your own transport. See description below. An XHR-Transport is included, too. But it's
+not functional in its current state.
 
 The API is inspired by [java-socket.io.client](https://github.com/benkay/java-socket.io.client) but as the license
 of this project was unclear and it had some nasty bugs, I decided to write socket.io-java-client from the scratch.
@@ -15,7 +16,6 @@ Features:
  * __transparent reconnecting__ - The API cares about re-establishing the connection to the server
    when the transport is interrupted.
  * __easy to use API__ - implement an interface, instantiate a class - you're done.
- * __robust protocols__ - if websockets are not available, Socket.IO-Client can connect by XHR, too.
  * __output buffer__ - send data while the transport is still connecting. No problem, socket.io-java-client handles that.
  * __meaningful exceptions__ - If something goes wrong, SocketIO tries to throw meaningful exceptions with hints for fixing.
 
@@ -105,8 +105,8 @@ handled by *IOConnection*.
 
 ## How to implement a transport?
 
-An example can be found in [WebsocketTransport.java](http://github.com/Gottox/socket.io-java-client/blob/master/src/io/socket/WebsocketTransport.java)
-
+An example can be found in [WebsocketTransport.java](http://github.com/Gottox/socket.io-java-client/blob/master/src/io/socket/XhrTransport.java)
+or [XhrTransport.java](http://github.com/Gottox/socket.io-java-client/blob/master/src/io/socket/XhrTransport.java)
 Create a class implementing the IOTransport interface.
 
 ### IOTransport
@@ -194,7 +194,8 @@ This Library was designed with portability in mind.
 
 ## TODO
 
-* Socket.io needs a testing framework.
+* Socket.io needs more unit-tests.
+* XhrTransport needs to pass all tests.
 * If websockets are failing (due to proxy servers e.g.), use XHR automaticly instead.
 
 ## License - the boring stuff...
