@@ -5,9 +5,7 @@ import static org.junit.Assert.*;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.net.MalformedURLException;
 import java.util.Arrays;
-import java.util.LinkedList;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
@@ -21,9 +19,9 @@ import org.junit.runner.RunWith;
 
 @RunWith(io.socket.RandomBlockJUnit4ClassRunner.class)
 public class TestSocketIO implements IOCallback {
-	private final static String NODE = "C:\\Program Files (x86)\\nodejs\\node.exe";
+	private final static String NODE = "/opt/local/bin/node";
 	private static final int PORT = 10214;
-	private static final int TIMEOUT = 2;
+	private static final int TIMEOUT = 200;
 	LinkedBlockingQueue<String> events;
 	LinkedBlockingQueue<String> outputs;
 	LinkedBlockingQueue<Object> args;
@@ -47,7 +45,7 @@ public class TestSocketIO implements IOCallback {
 		outputs = new LinkedBlockingQueue<String>();
 		args = new LinkedBlockingQueue<Object>();
 		node = Runtime.getRuntime().exec(
-				new String[] { NODE, "./node/socketio.js", "" + PORT });
+				new String[] { NODE, "./tests/io/socket/socketio.js", "" + PORT });
 
 		stdoutThread = new Thread("stdoutThread") {
 			public void run() {
@@ -220,6 +218,21 @@ public class TestSocketIO implements IOCallback {
 		SocketIO error = new SocketIO(
 				"http://127.0.0.1:" + (PORT + 1) + "/ns1", this);
 		assertEquals("onError", takeEvent());
+		doClose();
+	}
+	
+	@Test
+	public void acknowledge() throws Exception {
+		doConnect();
+		socket.emit("echoAck", new IOAcknowledge() {
+			@Override
+			public void ack(Object... args) {
+				events.add("ack");
+				TestSocketIO.this.args.addAll(Arrays.asList(args));
+			}
+		}, "TESTSTRING");
+		assertEquals("ack", takeEvent());
+		assertEquals("TESTSTRING", takeArg());
 		doClose();
 	}
 
