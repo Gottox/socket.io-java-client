@@ -23,6 +23,9 @@ var main = io.sockets.on('connection', function(socket) {
 			socket.send(data);
 		}
 	});
+	socket.on('echoAck', function(data, ack) {
+		ack(data);
+	});
 	socket.on('message', function(m) {
 		process.stdout.write("__:MESSAGE:"+m+"\n");
 	});
