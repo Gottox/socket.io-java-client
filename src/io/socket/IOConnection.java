@@ -15,6 +15,7 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Scanner;
 import java.util.Timer;
@@ -55,7 +56,7 @@ class IOConnection {
 	public static final String SOCKET_IO_1 = "/socket.io/1/";
 
 	/** All available connections. */
-	private static HashMap<String, IOConnection> connections = new HashMap<String, IOConnection>();
+	private static HashMap<String, List<IOConnection>> connections = new HashMap<String, List<IOConnection>>();
 
 	/** The url for this connection. */
 	private URL url;
@@ -234,13 +235,20 @@ class IOConnection {
 	 * @return a IOConnection object
 	 */
 	static public IOConnection register(String origin, SocketIO socket) {
-		IOConnection connection = connections.get(origin);
-		if (connection == null) {
-			connection = new IOConnection(origin, socket);
-			connections.put(origin, connection);
-		} else {
-			connection.register(socket);
+		List<IOConnection> list = connections.get(origin);
+		if(list == null) {
+			list = new LinkedList<IOConnection>();
+			connections.put(origin, list);
 		}
+		else {
+			for(IOConnection connection : list) {
+				if(connection.register(socket))
+					return connection;
+			}
+		}
+		
+		IOConnection connection = new IOConnection(origin, socket);
+		list.add(connection);
 		return connection;
 	}
 
@@ -351,20 +359,16 @@ class IOConnection {
 	 * @param socket
 	 *            the socket to be connected
 	 */
-	public void register(SocketIO socket) {
+	public boolean register(SocketIO socket) {
 		String namespace = socket.getNamespace();
 		if (sockets.containsKey(namespace))
-			socket.getCallback()
-					.onError(
-							new SocketIOException(
-									"Namespace '"
-											+ namespace
-											+ "' is already registered. Do not try to connect twice to the same url."));
+			return false;
 		else {
 			sockets.put(namespace, socket);
 			IOMessage connect = new IOMessage(IOMessage.TYPE_CONNECT,
 					socket.getNamespace(), "");
 			sendPlain(connect.toString());
+			return true;
 		}
 	}
 

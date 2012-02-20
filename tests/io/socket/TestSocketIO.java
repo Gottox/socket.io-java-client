@@ -21,7 +21,7 @@ import org.junit.runner.RunWith;
 
 @RunWith(io.socket.RandomBlockJUnit4ClassRunner.class)
 public class TestSocketIO implements IOCallback {
-	private final static String NODE = "/opt/local/bin/node";
+	private final static String NODE = "C:\\Program Files (x86)\\nodejs\\node.exe";
 	private static final int PORT = 10214;
 	private static final int TIMEOUT = 2;
 	LinkedBlockingQueue<String> events;
@@ -199,8 +199,17 @@ public class TestSocketIO implements IOCallback {
 
 		assertEquals("onMessage_string", takeEvent());
 		assertEquals("ns2", takeArg());
+		
+		SocketIO ns2_2 = new SocketIO("http://127.0.0.1:" + PORT + "/ns2", this);
+		assertEquals("onConnect", takeEvent());
 
+		assertEquals("onMessage_string", takeEvent());
+		assertEquals("ns2", takeArg());
+		
+		ns2_2.disconnect();
+		
 		ns2.disconnect();
+		assertEquals("onDisconnect", takeEvent());
 		assertEquals("onDisconnect", takeEvent());
 		doClose();
 	}
