@@ -11,45 +11,49 @@ package io.socket;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.net.URLConnection;
+import java.util.Arrays;
+import java.util.Iterator;
 import java.util.concurrent.ConcurrentLinkedQueue;
-
 
 /**
  * The Class XhrTransport.
  */
 class XhrTransport implements IOTransport {
-	
+
 	/** The String to identify this Transport. */
 	public static final String TRANSPORT_NAME = "xhr-polling";
-	
+
 	/** The connection. */
 	private IOConnection connection;
-	
+
 	/** The url. */
 	private URL url;
-	
+
 	/** The queue holding elements to send. */
 	ConcurrentLinkedQueue<String> queue = new ConcurrentLinkedQueue<String>();
 
 	/** background thread for managing the server connection. */
 	PollThread pollThread = null;
-	
+
 	/** Indicates whether the {@link IOConnection} wants us to be connected. */
 	private boolean connect;
-	
+
 	/** Indicates whether {@link PollThread} is blocked. */
 	private boolean blocked;
-	
+
+	HttpURLConnection urlConnection;
+
 	/**
 	 * The Class ReceiverThread.
 	 */
 	private class PollThread extends Thread {
-		
+
 		/**
 		 * Instantiates a new receiver thread.
 		 */
@@ -57,7 +61,9 @@ class XhrTransport implements IOTransport {
 			super(TRANSPORT_NAME);
 		}
 
-		/* (non-Javadoc)
+		/*
+		 * (non-Javadoc)
+		 * 
 		 * @see java.lang.Thread#run()
 		 */
 		@Override
@@ -66,26 +72,40 @@ class XhrTransport implements IOTransport {
 			while (isConnect()) {
 				try {
 					String line;
-					URLConnection urlConnection = url.openConnection();
+					URL url = new URL(XhrTransport.this.url.toString() + "?t=" + System.currentTimeMillis());
+					urlConnection = (HttpURLConnection) url.openConnection();
 					if (!queue.isEmpty()) {
 						urlConnection.setDoOutput(true);
+						urlConnection.setRequestMethod("POST") ;
 						BufferedWriter output = new BufferedWriter(
 								new OutputStreamWriter(
 										urlConnection.getOutputStream()));
-						while((line = queue.peek()) != null) {
-							output.write("ï¿½7ï¿½" + line);
-							queue.remove();
+						if (queue.size() == 1) {
+							line = queue.poll();
+							output.write(line);
+							System.out.println(line);
+						} else {
+							Iterator<String> iter = queue.iterator();
+							while (iter.hasNext()) {
+								line = iter.next();
+								output.write("\ufffd" + line.length()
+										+ "\ufffd" + line);
+								System.out.println("\ufffd" + line.length()
+										+ "\ufffd" + line);
+								iter.remove();
+							}
 						}
 						output.close();
-					}
-					else {
+					} else {
 						setBlocked(true);
-						BufferedReader input = new BufferedReader(
-								new InputStreamReader(
-										urlConnection.getInputStream()));
-						while ((line = input.readLine()) != null) {
-							if (connection != null)
-								connection.transportMessage(line);
+						InputStream plainInput = urlConnection.getInputStream();
+						if (plainInput != null) {
+							BufferedReader input = new BufferedReader(
+									new InputStreamReader(plainInput));
+							while ((line = input.readLine()) != null) {
+								if (connection != null)
+									connection.transportMessage(line);
+							}
 						}
 						setBlocked(false);
 					}
@@ -103,9 +123,11 @@ class XhrTransport implements IOTransport {
 
 	/**
 	 * Creates a new Transport for the given url an {@link IOConnection}.
-	 *
-	 * @param url the url
-	 * @param connection the connection
+	 * 
+	 * @param url
+	 *            the url
+	 * @param connection
+	 *            the connection
 	 * @return the iO transport
 	 */
 	public static IOTransport create(URL url, IOConnection connection) {
@@ -123,16 +145,20 @@ class XhrTransport implements IOTransport {
 
 	/**
 	 * Instantiates a new xhr transport.
-	 *
-	 * @param url the url
-	 * @param connection the connection
+	 * 
+	 * @param url
+	 *            the url
+	 * @param connection
+	 *            the connection
 	 */
 	public XhrTransport(URL url, IOConnection connection) {
 		this.connection = connection;
 		this.url = url;
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see io.socket.IOTransport#connect()
 	 */
 	@Override
@@ -142,7 +168,9 @@ class XhrTransport implements IOTransport {
 		pollThread.start();
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see io.socket.IOTransport#disconnect()
 	 */
 	@Override
@@ -151,7 +179,9 @@ class XhrTransport implements IOTransport {
 		pollThread.interrupt();
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see io.socket.IOTransport#send(java.lang.String)
 	 */
 	@Override
@@ -159,7 +189,9 @@ class XhrTransport implements IOTransport {
 		sendBulk(new String[] { text });
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see io.socket.IOTransport#canSendBulk()
 	 */
 	@Override
@@ -167,19 +199,23 @@ class XhrTransport implements IOTransport {
 		return true;
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see io.socket.IOTransport#sendBulk(java.lang.String[])
 	 */
 	@Override
 	public void sendBulk(String[] texts) throws IOException {
-		for (String text : texts) {
-			queue.add(text);
-		}
-		if(isBlocked())
+		queue.addAll(Arrays.asList(texts));
+		if (isBlocked()) {
 			pollThread.interrupt();
+			urlConnection.disconnect();
+		}
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see io.socket.IOTransport#invalidate()
 	 */
 	@Override
@@ -189,7 +225,7 @@ class XhrTransport implements IOTransport {
 
 	/**
 	 * Checks if is connect.
-	 *
+	 * 
 	 * @return true, if is connect
 	 */
 	private synchronized boolean isConnect() {
@@ -198,8 +234,9 @@ class XhrTransport implements IOTransport {
 
 	/**
 	 * Sets the connect.
-	 *
-	 * @param connect the new connect
+	 * 
+	 * @param connect
+	 *            the new connect
 	 */
 	private synchronized void setConnect(boolean connect) {
 		this.connect = connect;
@@ -207,7 +244,7 @@ class XhrTransport implements IOTransport {
 
 	/**
 	 * Checks if is blocked.
-	 *
+	 * 
 	 * @return true, if is blocked
 	 */
 	private synchronized boolean isBlocked() {
@@ -216,10 +253,16 @@ class XhrTransport implements IOTransport {
 
 	/**
 	 * Sets the blocked.
-	 *
-	 * @param blocked the new blocked
+	 * 
+	 * @param blocked
+	 *            the new blocked
 	 */
 	private synchronized void setBlocked(boolean blocked) {
 		this.blocked = blocked;
+	}
+
+	@Override
+	public String getName() {
+		return TRANSPORT_NAME;
 	}
 }

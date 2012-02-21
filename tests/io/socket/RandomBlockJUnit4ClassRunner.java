@@ -14,7 +14,8 @@ public class RandomBlockJUnit4ClassRunner extends BlockJUnit4ClassRunner {
     		throws InitializationError {
     	super(klass);
     }
-
+   
+    
     protected java.util.List<org.junit.runners.model.FrameworkMethod> computeTestMethods() {
     	java.util.List<org.junit.runners.model.FrameworkMethod> methods = super.computeTestMethods();
     	Collections.shuffle(methods);

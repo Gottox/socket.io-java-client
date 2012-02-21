@@ -60,4 +60,6 @@ interface IOTransport {
 	 * {@link IOConnection}
 	 */
 	void invalidate();
+	
+	String getName();
 }

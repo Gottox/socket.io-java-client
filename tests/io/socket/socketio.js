@@ -1,25 +1,24 @@
-var port = parseInt(process.argv[process.argv.length - 1]);
+var port = parseInt(process.argv[2]);
 
 var io = require('socket.io').listen(port);
 var stdin = process.openStdin();
 
 stdin.setEncoding('utf8');
 
-stdin.on('data', function (chunk) {
-  process.stderr.write(chunk);
+stdin.on('data', function(chunk) {
+	process.stderr.write(chunk);
 });
 
-
+io.set('transports', [ process.argv[3] ]);
 
 var main = io.sockets.on('connection', function(socket) {
 	socket.on('echo', function(data) {
 		socket.emit('echo', data);
 	});
 	socket.on('echoSend', function(data) {
-		if(typeof data == 'object') {
+		if (typeof data == 'object') {
 			socket.send(JSON.parse(JSON.stringify(data)));
-		}
-		else {
+		} else {
 			socket.send(data);
 		}
 	});
@@ -27,7 +26,7 @@ var main = io.sockets.on('connection', function(socket) {
 		ack(data);
 	});
 	socket.on('message', function(m) {
-		process.stdout.write("__:MESSAGE:"+m+"\n");
+		process.stdout.write("__:MESSAGE:" + m + "\n");
 	});
 });
 

@@ -136,4 +136,9 @@ class WebsocketTransport implements IOTransport, WebSocketEventHandler {
 	public void send(String text) throws Exception {
 		websocket.send(text);
 	}
+
+	@Override
+	public String getName() {
+		return TRANSPORT_NAME;
+	}
 }

@@ -13,15 +13,14 @@ import org.json.JSONObject;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 @RunWith(io.socket.RandomBlockJUnit4ClassRunner.class)
-public class TestSocketIO implements IOCallback {
-	private final static String NODE = "C:\\Program Files (x86)\\nodejs\\node.exe";
-	private static final int PORT = 10214;
-	private static final int TIMEOUT = 2;
+public abstract class AbstractTestSocketIO implements IOCallback {
+	private final static String NODE = "/opt/local/bin/node";
+	private int port = -1;
+	private static final int TIMEOUT = 1000;
 	LinkedBlockingQueue<String> events;
 	LinkedBlockingQueue<String> outputs;
 	LinkedBlockingQueue<Object> args;
@@ -30,10 +29,7 @@ public class TestSocketIO implements IOCallback {
 	Thread stderrThread;
 	private Process node;
 	private SocketIO socket;
-
-	@BeforeClass
-	public static void setUpBeforeClass() throws Exception {
-	}
+	static protected String transport = null;
 
 	@AfterClass
 	public static void tearDownAfterClass() throws Exception {
@@ -41,11 +37,14 @@ public class TestSocketIO implements IOCallback {
 
 	@Before
 	public void setUp() throws Exception {
+		assertNotNull("Transport is set correctly", transport);
 		events = new LinkedBlockingQueue<String>();
 		outputs = new LinkedBlockingQueue<String>();
 		args = new LinkedBlockingQueue<Object>();
+		System.out.println("Connect with " + transport);
 		node = Runtime.getRuntime().exec(
-				new String[] { NODE, "./tests/io/socket/socketio.js", "" + PORT });
+				new String[] { NODE, "./tests/io/socket/socketio.js",
+						"" + getPort(), transport });
 
 		stdoutThread = new Thread("stdoutThread") {
 			public void run() {
@@ -89,6 +88,16 @@ public class TestSocketIO implements IOCallback {
 		};
 		stderrThread.start();
 		stdoutThread.start();
+		Runtime.getRuntime().addShutdownHook(new Thread() {
+			@Override
+			public void run() {
+				try {
+					node.destroy();
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		});
 		assertEquals("OK", takeLine());
 	}
 
@@ -112,8 +121,9 @@ public class TestSocketIO implements IOCallback {
 
 	void doConnect() throws Exception {
 		// Setting up socket connection
-		socket = new SocketIO("http://127.0.0.1:" + PORT, this);
+		socket = new SocketIO("http://127.0.0.1:" + getPort(), this);
 		assertEquals("onConnect", takeEvent());
+		assertEquals(transport, socket.getTransport());
 	}
 
 	void doClose() throws Exception {
@@ -133,7 +143,7 @@ public class TestSocketIO implements IOCallback {
 
 	// BEGIN TESTS
 
-	@Test
+	@Test(timeout=TIMEOUT)
 	public void send() throws Exception {
 		doConnect();
 		String str = "TESTSTRING";
@@ -142,7 +152,7 @@ public class TestSocketIO implements IOCallback {
 		doClose();
 	}
 
-	@Test
+	@Test(timeout=TIMEOUT)
 	public void emitAndOn() throws Exception {
 		doConnect();
 
@@ -159,7 +169,7 @@ public class TestSocketIO implements IOCallback {
 		doClose();
 	}
 
-	@Test
+	@Test(timeout=TIMEOUT)
 	public void emitAndMessage() throws Exception {
 		doConnect();
 		String str = "TESTSTRING";
@@ -177,9 +187,9 @@ public class TestSocketIO implements IOCallback {
 		doClose();
 	}
 
-	@Test
+	@Test(timeout=TIMEOUT)
 	public void namespaces() throws Exception {
-		SocketIO ns1 = new SocketIO("http://127.0.0.1:" + PORT + "/ns1", this);
+		SocketIO ns1 = new SocketIO("http://127.0.0.1:" + getPort() + "/ns1", this);
 		assertEquals("onConnect", takeEvent());
 
 		// In some very rare cases, it is possible to receive data on an socket
@@ -192,18 +202,18 @@ public class TestSocketIO implements IOCallback {
 		ns1.disconnect();
 		assertEquals("onDisconnect", takeEvent());
 
-		SocketIO ns2 = new SocketIO("http://127.0.0.1:" + PORT + "/ns2", this);
+		SocketIO ns2 = new SocketIO("http://127.0.0.1:" + getPort() + "/ns2", this);
 		assertEquals("onConnect", takeEvent());
 
 		assertEquals("onMessage_string", takeEvent());
 		assertEquals("ns2", takeArg());
-		
-		SocketIO ns2_2 = new SocketIO("http://127.0.0.1:" + PORT + "/ns2", this);
+
+		SocketIO ns2_2 = new SocketIO("http://127.0.0.1:" + getPort() + "/ns2", this);
 		assertEquals("onConnect", takeEvent());
 
 		assertEquals("onMessage_string", takeEvent());
 		assertEquals("ns2", takeArg());
-		
+
 		ns2_2.disconnect();
 		ns2.disconnect();
 		assertEquals("onDisconnect", takeEvent());
@@ -211,23 +221,22 @@ public class TestSocketIO implements IOCallback {
 		doClose();
 	}
 
-	@Test
+	@Test(timeout=TIMEOUT)
 	public void error() throws Exception {
 		doConnect();
-		new SocketIO(
-				"http://127.0.0.1:" + (PORT + 1) + "/ns1", this);
+		new SocketIO("http://127.0.0.1:1024/", this);
 		assertEquals("onError", takeEvent());
 		doClose();
 	}
-	
-	@Test
+
+	@Test(timeout=TIMEOUT)
 	public void acknowledge() throws Exception {
 		doConnect();
 		socket.emit("echoAck", new IOAcknowledge() {
 			@Override
 			public void ack(Object... args) {
 				events.add("ack");
-				TestSocketIO.this.args.addAll(Arrays.asList(args));
+				AbstractTestSocketIO.this.args.addAll(Arrays.asList(args));
 			}
 		}, "TESTSTRING");
 		assertEquals("ack", takeEvent());
@@ -256,7 +265,7 @@ public class TestSocketIO implements IOCallback {
 	}
 
 	Object takeArg() throws InterruptedException {
-		Object arg = args.poll(TIMEOUT, TimeUnit.SECONDS);
+		Object arg = args.poll(TIMEOUT, TimeUnit.MILLISECONDS);
 		if (arg == null) {
 			fail("takeArg Timeout!");
 		}
@@ -295,6 +304,12 @@ public class TestSocketIO implements IOCallback {
 	@Override
 	public void onError(SocketIOException socketIOException) {
 		events.add("onError");
+	}
+
+	public int getPort() {
+		if(port == -1)
+			port = 2048 + (int)(Math.random() * 10000);
+		return port;
 	}
 
 }

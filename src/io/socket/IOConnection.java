@@ -263,9 +263,11 @@ class IOConnection {
 			transport = WebsocketTransport.create(url, this);
 		else if (protocols.contains(XhrTransport.TRANSPORT_NAME))
 			transport = XhrTransport.create(url, this);
-		else
+		else {
 			error(new SocketIOException(
 					"Server supports no available transports. You should reconfigure the server to support a available transport"));
+			return;
+		}
 		transport.connect();
 	}
 
@@ -828,15 +830,27 @@ class IOConnection {
 		return getState() == STATE_READY;
 	}
 
-	public int getState() {
-		synchronized (this) {
-			return state;
-		}
+	/**
+	 * Gets the current state of this IOConnection
+	 * @return current state
+	 */
+	private synchronized int getState() {
+		return state;
 	}
 
-	public void setState(int state) {
-		synchronized (this) {
-			this.state = state;
-		}
+	/**
+	 * Sets the current state of this IOConnection
+	 * @param new state
+	 */
+	private synchronized void setState(int state) {
+		this.state = state;
+	}
+
+	/**
+	 * gets the currently used transport
+	 * @return currently used transport
+	 */
+	public IOTransport getTransport() {
+		return transport;
 	}
 }

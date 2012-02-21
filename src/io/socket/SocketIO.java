@@ -302,4 +302,14 @@ public class SocketIO {
 	public boolean isConnected() {
 		return this.connection.isConnected();
 	}
+	
+	/**
+	 * Returns the name of the used transport
+	 * 
+	 * @return the name of the currently used transport
+	 */
+	public String getTransport() {
+		IOTransport transport = this.connection.getTransport();
+		return transport != null ? transport.getName() : null;
+	}
 }
