@@ -99,7 +99,8 @@ For further informations, read the [Javadoc](http://s01.de/~tox/hgexport/socket.
  * [Class SocketIO](http://s01.de/~tox/hgexport/socket.io-java-client/io/socket/SocketIO.html)
  * [Interface IOCallback](http://s01.de/~tox/hgexport/socket.io-java-client/io/socket/IOCallback.html)
 
-## What is the architecture?
+## Internals
+
 Read this if you want to investigate in socket.io-java-client.
 
 ![Schema](https://github.com/Gottox/socket.io-java-client/raw/master/doc/schema.png)
