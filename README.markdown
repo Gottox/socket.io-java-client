@@ -19,11 +19,36 @@ Features:
  * __output buffer__ - send data while the transport is still connecting. No problem, socket.io-java-client handles that.
  * __meaningful exceptions__ - If something goes wrong, SocketIO tries to throw meaningful exceptions with hints for fixing.
 
+__Status:__ Connecting with Websocket is production ready. XHR is not usable at the moment but I'm working on it.
+
+### Checkout
+
+ * with git
+ 
+	git clone git://github.com/Gottox/socket.io-java-client.git
+
+ * with mercurial
+ 
+ 	hg clone https://bitbucket.org/Gottox/socket.io-java-client 
+ 	
+Both repositories are synchronized and up to date.
+
+### Building
+
+to build a jar-file:
+
+	cd $PATH_TO_SOCKETIO_JAVA
+	ant jar
+	ls jar/socketio.jar
+
+You'll find the socket.io-jar in jar/socketio.jar 
+
 ## How to use
 
 Using socket.io-java-client is quite simple. But lets see:
 
 ``` java
+
 	// Initialise a socket:
 	SocketIO socket = new IOSocket("http://127.0.0.1:3001");
 	socket.connect(new IOCallback() {
@@ -191,6 +216,17 @@ This Library was designed with portability in mind.
 * __GWT__ does not work at the moment, but a port would be possible.
 * __JavaME__ untested.
 * ... is there anything else out there?
+
+
+## Testing
+
+There comes a JUnit test suite with socket.io-java-client. Currently it's tested with Eclipse.
+
+You need node installed in PATH.
+
+ * open the project with eclipse
+ * open tests/io.socket/AllTests.java
+ * run it as JUnit4 test.
 
 ## TODO
 
