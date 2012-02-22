@@ -18,7 +18,7 @@ import org.junit.runner.RunWith;
 
 @RunWith(io.socket.RandomBlockJUnit4ClassRunner.class)
 public abstract class AbstractTestSocketIO implements IOCallback {
-	private final static String NODE = "/opt/local/bin/node";
+	private final static String NODE = "node";
 	private int port = -1;
 	private static final int TIMEOUT = 1000;
 	LinkedBlockingQueue<String> events;
