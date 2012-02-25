@@ -25,12 +25,12 @@ __Status:__ Connecting with Websocket is production ready. XHR is not usable at 
 
  * with git
  
-	git clone git://github.com/Gottox/socket.io-java-client.git
+		git clone git://github.com/Gottox/socket.io-java-client.git
 
  * with mercurial
  
- 	hg clone https://bitbucket.org/Gottox/socket.io-java-client 
- 	
+ 		hg clone https://bitbucket.org/Gottox/socket.io-java-client 
+ 
 Both repositories are synchronized and up to date.
 
 ### Building
