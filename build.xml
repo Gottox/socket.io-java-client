@@ -16,7 +16,7 @@
     <path id="socket.io-java-client.classpath">
         <pathelement location="bin"/>
         <pathelement location="lib/json-org.jar"/>
-        <pathelement location="lib/WebSocket.jar"/>
+        <pathelement location="lib/weberknecht-0.1.1.jar"/>
     </path>
     <target name="init">
         <mkdir dir="bin"/>
