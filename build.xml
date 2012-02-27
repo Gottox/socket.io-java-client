@@ -90,7 +90,7 @@
     </target>
 	<target name="jar" depends="build-project">
 	        <mkdir dir="jar"/>
-	        <jar destfile="jar/socketio.jar" basedir="bin">
+	        <jar destfile="jar/socketio.build-${env.BUILD_NUMBER}.jar" basedir="bin">
 	            <manifest>
 	            </manifest>
 	        </jar>
