@@ -275,9 +275,9 @@ class IOConnection {
 	 *         server doesn't request one.
 	 */
 	private IOAcknowledge remoteAcknowledge(IOMessage message) {
-		if (message.getId().endsWith("+") == false)
-			return null;
 		final String id = message.getId();
+		if (id.endsWith("+") == false)
+			return null;
 		final String endPoint = message.getEndpoint();
 		return new IOAcknowledge() {
 			@Override
