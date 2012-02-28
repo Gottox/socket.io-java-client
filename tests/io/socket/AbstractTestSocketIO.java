@@ -1,3 +1,11 @@
+/*
+ * socket.io-java-client AbstractTestSocketIO.java
+ *
+ * Copyright (c) 2012, Enno Boland
+ * PROJECT DESCRIPTION
+ * 
+ * See LICENSE file for more information
+ */
 package io.socket;
 
 import static org.junit.Assert.*;
@@ -16,25 +24,64 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+// TODO: Auto-generated Javadoc
+/**
+ * The Class AbstractTestSocketIO.
+ */
 @RunWith(io.socket.RandomBlockJUnit4ClassRunner.class)
 public abstract class AbstractTestSocketIO implements IOCallback {
+
+	/** The Constant to the node executable */
 	private final static String NODE = "node";
+
+	/** The port of this test, randomly choosed */
 	private int port = -1;
+
+	/** Timeout for the tests */
 	private static final int TIMEOUT = 1000;
+
+	/** Received queues. */
 	LinkedBlockingQueue<String> events;
+
+	/** stdout of the node executable */
 	LinkedBlockingQueue<String> outputs;
+
+	/** Received arguments of events */
 	LinkedBlockingQueue<Object> args;
 
+	/** Thread for processing stdout */
 	Thread stdoutThread;
+
+	/** Thread for processing stderr */
 	Thread stderrThread;
+
+	/** The node process. */
 	private Process node;
+
+	/** The socket to test. */
 	private SocketIO socket;
+
+	/** The transport of this test */
 	static protected String transport = null;
 
+	/**
+	 * Tear down after class.
+	 * 
+	 * @throws Exception
+	 *             the exception
+	 */
 	@AfterClass
 	public static void tearDownAfterClass() throws Exception {
 	}
 
+	/**
+	 * Sets up the test. Starts the node testserver on a randomly choosed port,
+	 * starts backgroundthreads for processing stdin/stdout. Adds shutdown-hook
+	 * for clean kill of the node server.
+	 * 
+	 * @throws Exception
+	 *             the exception
+	 */
 	@Before
 	public void setUp() throws Exception {
 		assertNotNull("Transport is set correctly", transport);
@@ -101,6 +148,12 @@ public abstract class AbstractTestSocketIO implements IOCallback {
 		assertEquals("OK", takeLine());
 	}
 
+	/**
+	 * Tears down this test. Asures queues are empty.
+	 * 
+	 * @throws Exception
+	 *             the exception
+	 */
 	@After
 	public void tearDown() throws Exception {
 
@@ -119,6 +172,12 @@ public abstract class AbstractTestSocketIO implements IOCallback {
 		}
 	}
 
+	/**
+	 * Sets up a {@link SocketIO} connection.
+	 * 
+	 * @throws Exception
+	 *             the exception
+	 */
 	void doConnect() throws Exception {
 		// Setting up socket connection
 		socket = new SocketIO("http://127.0.0.1:" + getPort(), this);
@@ -126,6 +185,12 @@ public abstract class AbstractTestSocketIO implements IOCallback {
 		assertEquals(transport, socket.getTransport());
 	}
 
+	/**
+	 * Closes a {@link SocketIO} connection.
+	 * 
+	 * @throws Exception
+	 *             the exception
+	 */
 	void doClose() throws Exception {
 		socket.disconnect();
 		assertEquals("onDisconnect", takeEvent());
@@ -143,7 +208,13 @@ public abstract class AbstractTestSocketIO implements IOCallback {
 
 	// BEGIN TESTS
 
-	@Test(timeout=TIMEOUT)
+	/**
+	 * Tests sending of a message to the server. Asures result by stdout.
+	 * 
+	 * @throws Exception
+	 *             the exception
+	 */
+	@Test(timeout = TIMEOUT)
 	public void send() throws Exception {
 		doConnect();
 		String str = "TESTSTRING";
@@ -152,7 +223,13 @@ public abstract class AbstractTestSocketIO implements IOCallback {
 		doClose();
 	}
 
-	@Test(timeout=TIMEOUT)
+	/**
+	 * Emit and on.
+	 * 
+	 * @throws Exception
+	 *             the exception
+	 */
+	@Test(timeout = TIMEOUT)
 	public void emitAndOn() throws Exception {
 		doConnect();
 
@@ -169,7 +246,13 @@ public abstract class AbstractTestSocketIO implements IOCallback {
 		doClose();
 	}
 
-	@Test(timeout=TIMEOUT)
+	/**
+	 * Emit and message.
+	 * 
+	 * @throws Exception
+	 *             the exception
+	 */
+	@Test(timeout = TIMEOUT)
 	public void emitAndMessage() throws Exception {
 		doConnect();
 		String str = "TESTSTRING";
@@ -187,9 +270,16 @@ public abstract class AbstractTestSocketIO implements IOCallback {
 		doClose();
 	}
 
-	@Test(timeout=TIMEOUT)
+	/**
+	 * Namespaces.
+	 * 
+	 * @throws Exception
+	 *             the exception
+	 */
+	@Test(timeout = TIMEOUT)
 	public void namespaces() throws Exception {
-		SocketIO ns1 = new SocketIO("http://127.0.0.1:" + getPort() + "/ns1", this);
+		SocketIO ns1 = new SocketIO("http://127.0.0.1:" + getPort() + "/ns1",
+				this);
 		assertEquals("onConnect", takeEvent());
 
 		// In some very rare cases, it is possible to receive data on an socket
@@ -202,13 +292,15 @@ public abstract class AbstractTestSocketIO implements IOCallback {
 		ns1.disconnect();
 		assertEquals("onDisconnect", takeEvent());
 
-		SocketIO ns2 = new SocketIO("http://127.0.0.1:" + getPort() + "/ns2", this);
+		SocketIO ns2 = new SocketIO("http://127.0.0.1:" + getPort() + "/ns2",
+				this);
 		assertEquals("onConnect", takeEvent());
 
 		assertEquals("onMessage_string", takeEvent());
 		assertEquals("ns2", takeArg());
 
-		SocketIO ns2_2 = new SocketIO("http://127.0.0.1:" + getPort() + "/ns2", this);
+		SocketIO ns2_2 = new SocketIO("http://127.0.0.1:" + getPort() + "/ns2",
+				this);
 		assertEquals("onConnect", takeEvent());
 
 		assertEquals("onMessage_string", takeEvent());
@@ -221,7 +313,13 @@ public abstract class AbstractTestSocketIO implements IOCallback {
 		doClose();
 	}
 
-	@Test(timeout=TIMEOUT)
+	/**
+	 * Error.
+	 * 
+	 * @throws Exception
+	 *             the exception
+	 */
+	@Test(timeout = TIMEOUT)
 	public void error() throws Exception {
 		doConnect();
 		new SocketIO("http://127.0.0.1:1024/", this);
@@ -229,7 +327,13 @@ public abstract class AbstractTestSocketIO implements IOCallback {
 		doClose();
 	}
 
-	@Test(timeout=TIMEOUT)
+	/**
+	 * Acknowledge.
+	 * 
+	 * @throws Exception
+	 *             the exception
+	 */
+	@Test(timeout = TIMEOUT)
 	public void acknowledge() throws Exception {
 		doConnect();
 		socket.emit("echoAck", new IOAcknowledge() {
@@ -246,6 +350,13 @@ public abstract class AbstractTestSocketIO implements IOCallback {
 
 	// END TESTS
 
+	/**
+	 * Take event.
+	 * 
+	 * @return the string
+	 * @throws InterruptedException
+	 *             the interrupted exception
+	 */
 	String takeEvent() throws InterruptedException {
 		String event = events.poll(TIMEOUT, TimeUnit.SECONDS);
 		if (event == null) {
@@ -255,6 +366,13 @@ public abstract class AbstractTestSocketIO implements IOCallback {
 		return event;
 	}
 
+	/**
+	 * Take line.
+	 * 
+	 * @return the string
+	 * @throws InterruptedException
+	 *             the interrupted exception
+	 */
 	String takeLine() throws InterruptedException {
 		String line = outputs.poll(TIMEOUT, TimeUnit.SECONDS);
 		if (line == null) {
@@ -264,6 +382,13 @@ public abstract class AbstractTestSocketIO implements IOCallback {
 		return line;
 	}
 
+	/**
+	 * Take arg.
+	 * 
+	 * @return the object
+	 * @throws InterruptedException
+	 *             the interrupted exception
+	 */
 	Object takeArg() throws InterruptedException {
 		Object arg = args.poll(TIMEOUT, TimeUnit.MILLISECONDS);
 		if (arg == null) {
@@ -273,42 +398,81 @@ public abstract class AbstractTestSocketIO implements IOCallback {
 		return arg;
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see io.socket.IOCallback#onDisconnect()
+	 */
 	@Override
 	public void onDisconnect() {
 		events.add("onDisconnect");
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see io.socket.IOCallback#onConnect()
+	 */
 	@Override
 	public void onConnect() {
 		events.add("onConnect");
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see io.socket.IOCallback#onMessage(java.lang.String,
+	 * io.socket.IOAcknowledge)
+	 */
 	@Override
 	public void onMessage(String data, IOAcknowledge ack) {
 		events.add("onMessage_string");
 		this.args.add(data);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see io.socket.IOCallback#onMessage(org.json.JSONObject,
+	 * io.socket.IOAcknowledge)
+	 */
 	@Override
 	public void onMessage(JSONObject json, IOAcknowledge ack) {
 		events.add("onMessage_json");
 		this.args.add(json);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see io.socket.IOCallback#on(java.lang.String, io.socket.IOAcknowledge,
+	 * java.lang.Object[])
+	 */
 	@Override
 	public void on(String event, IOAcknowledge ack, Object... args) {
 		events.add("on");
 		this.args.addAll(Arrays.asList(args));
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see io.socket.IOCallback#onError(io.socket.SocketIOException)
+	 */
 	@Override
 	public void onError(SocketIOException socketIOException) {
+		socketIOException.printStackTrace();
 		events.add("onError");
 	}
 
+	/**
+	 * Gets the port.
+	 * 
+	 * @return the port
+	 */
 	public int getPort() {
-		if(port == -1)
-			port = 2048 + (int)(Math.random() * 10000);
+		if (port == -1)
+			port = 2048 + (int) (Math.random() * 10000);
 		return port;
 	}
 
