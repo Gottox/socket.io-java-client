@@ -231,17 +231,16 @@ class IOConnection {
 	 */
 	static public IOConnection register(String origin, SocketIO socket) {
 		List<IOConnection> list = connections.get(origin);
-		if(list == null) {
+		if (list == null) {
 			list = new LinkedList<IOConnection>();
 			connections.put(origin, list);
-		}
-		else {
-			for(IOConnection connection : list) {
-				if(connection.register(socket))
+		} else {
+			for (IOConnection connection : list) {
+				if (connection.register(socket))
 					return connection;
 			}
 		}
-		
+
 		IOConnection connection = new IOConnection(origin, socket);
 		list.add(connection);
 		return connection;
@@ -352,9 +351,11 @@ class IOConnection {
 
 	/**
 	 * Connects a socket to the IOConnection.
-	 *
-	 * @param socket the socket to be connected
-	 * @return true, if successfully registered on this transport, otherwise false.
+	 * 
+	 * @param socket
+	 *            the socket to be connected
+	 * @return true, if successfully registered on this transport, otherwise
+	 *         false.
 	 */
 	public boolean register(SocketIO socket) {
 		String namespace = socket.getNamespace();
@@ -588,11 +589,14 @@ class IOConnection {
 		case IOMessage.TYPE_EVENT:
 			try {
 				JSONObject event = new JSONObject(message.getData());
-				JSONArray args = event.getJSONArray("args");
-				Object[] argsArray = new Object[args.length()];
-				for (int i = 0; i < args.length(); i++) {
-					if (args.isNull(i) == false)
-						argsArray[i] = args.get(i);
+				Object[] argsArray = new Object[0];
+				if (event.has("args")) {
+					JSONArray args = event.getJSONArray("args");
+					argsArray = new Object[args.length()];
+					for (int i = 0; i < args.length(); i++) {
+						if (args.isNull(i) == false)
+							argsArray[i] = args.get(i);
+					}
 				}
 				String eventName = event.getString("name");
 				try {
@@ -705,8 +709,7 @@ class IOConnection {
 	/**
 	 * Returns the session id. This should be called from a {@link IOTransport}
 	 * 
-	 * @return the session id to connect to the right
-	 *         Session.
+	 * @return the session id to connect to the right Session.
 	 */
 	public String getSessionId() {
 		return sessionId;
@@ -827,7 +830,7 @@ class IOConnection {
 
 	/**
 	 * Gets the current state of this IOConnection.
-	 *
+	 * 
 	 * @return current state
 	 */
 	private synchronized int getState() {
@@ -836,8 +839,9 @@ class IOConnection {
 
 	/**
 	 * Sets the current state of this IOConnection.
-	 *
-	 * @param state the new state
+	 * 
+	 * @param state
+	 *            the new state
 	 */
 	private synchronized void setState(int state) {
 		this.state = state;
@@ -845,7 +849,7 @@ class IOConnection {
 
 	/**
 	 * gets the currently used transport.
-	 *
+	 * 
 	 * @return currently used transport
 	 */
 	public IOTransport getTransport() {
