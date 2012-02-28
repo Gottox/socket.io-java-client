@@ -27,7 +27,6 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-// TODO: Auto-generated Javadoc
 /**
  * The Class IOConnection.
  */
@@ -170,7 +169,6 @@ class IOConnection {
 	 * {@link IOTransport}
 	 */
 	private class ConnectThread extends Thread {
-
 		/**
 		 * Instantiates a new background thread.
 		 */
@@ -206,14 +204,12 @@ class IOConnection {
 				InputStream stream = connection.getInputStream();
 				Scanner in = new Scanner(stream);
 				response = in.nextLine();
-				if (response.contains(":")) {
-					String[] data = response.split(":");
-					heartbeatTimeout = Long.parseLong(data[1]) * 1000;
-					closingTimeout = Long.parseLong(data[2]) * 1000;
-					protocols = Arrays.asList(data[3].split(","));
-					sessionId = data[0];
-				}
-			} catch (IOException e) {
+				String[] data = response.split(":");
+				sessionId = data[0];
+				heartbeatTimeout = Long.parseLong(data[1]) * 1000;
+				closingTimeout = Long.parseLong(data[2]) * 1000;
+				protocols = Arrays.asList(data[3].split(","));
+			} catch (Exception e) {
 				error(new SocketIOException("Error while handshaking", e));
 			}
 		}
@@ -498,7 +494,7 @@ class IOConnection {
 	 * 
 	 * @param error
 	 *            the error {@link IOTransport} calls this, when an exception
-	 *            has occured and the transport is not usable anymore.
+	 *            has occurred and the transport is not usable anymore.
 	 */
 	public void transportError(Exception error) {
 		this.lastException = error;
@@ -717,48 +713,6 @@ class IOConnection {
 		return sessionId;
 	}
 
-	/** A dummy callback used when IOConnection receives a unexpected message. */
-	final static public IOCallback DUMMY_CALLBACK = new IOCallback() {
-		private void out(String msg) {
-			logger.info("DUMMY CALLBACK: " + msg);
-		}
-
-		@Override
-		public void onDisconnect() {
-			out("Disconnect");
-		}
-
-		@Override
-		public void onConnect() {
-			out("Connect");
-		}
-
-		@Override
-		public void onMessage(String data, IOAcknowledge ack) {
-			out("Message:\n" + data + "\n-------------");
-		}
-
-		@Override
-		public void onMessage(JSONObject json, IOAcknowledge ack) {
-			out("Message:\n" + json.toString() + "\n-------------");
-		}
-
-		@Override
-		public void on(String event, IOAcknowledge ack, Object... args) {
-			out("Event '" + event + "':\n");
-			for (Object arg : args)
-				out(arg.toString());
-			out("\n-------------");
-		}
-
-		@Override
-		public void onError(SocketIOException socketIOException) {
-			out("Error");
-			throw new RuntimeException(socketIOException);
-		}
-
-	};
-
 	/**
 	 * sends a String message from {@link SocketIO} to the {@link IOTransport}.
 	 * 
@@ -857,4 +811,42 @@ class IOConnection {
 	public IOTransport getTransport() {
 		return transport;
 	}
+
+	/** A dummy callback used when IOConnection receives a unexpected message. */
+	final static public IOCallback DUMMY_CALLBACK = new IOCallback() {
+		@Override
+		public void onDisconnect() {
+			logger.info("Disconnect");
+		}
+	
+		@Override
+		public void onConnect() {
+			logger.info("Connect");
+		}
+	
+		@Override
+		public void onMessage(String data, IOAcknowledge ack) {
+			logger.info("Message:\n" + data + "\n-------------");
+		}
+	
+		@Override
+		public void onMessage(JSONObject json, IOAcknowledge ack) {
+			logger.info("Message:\n" + json.toString() + "\n-------------");
+		}
+	
+		@Override
+		public void on(String event, IOAcknowledge ack, Object... args) {
+			logger.info("Event '" + event + "':\n");
+			for (Object arg : args)
+				logger.info(arg.toString());
+			logger.info("\n-------------");
+		}
+	
+		@Override
+		public void onError(SocketIOException socketIOException) {
+			logger.info("Error");
+			throw new RuntimeException(socketIOException);
+		}
+	
+	};
 }
