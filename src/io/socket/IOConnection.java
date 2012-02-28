@@ -649,7 +649,7 @@ class IOConnection {
 				findCallback(message).onError(
 						new SocketIOException(message.getData()));
 			if (message.getData().endsWith("+0")) {
-				// We are adviced to disconnect
+				// We are advised to disconnect
 				cleanup();
 			}
 			break;
