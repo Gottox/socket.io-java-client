@@ -31,6 +31,8 @@ import org.junit.runner.RunWith;
 @RunWith(io.socket.RandomBlockJUnit4ClassRunner.class)
 public abstract class AbstractTestSocketIO implements IOCallback {
 
+	private static final String REQUEST_ACKNOWLEDGE = "requestAcknowledge";
+
 	/** The Constant to the node executable */
 	private final static String NODE = "node";
 
@@ -38,7 +40,7 @@ public abstract class AbstractTestSocketIO implements IOCallback {
 	private int port = -1;
 
 	/** Timeout for the tests */
-	private static final int TIMEOUT = 1000;
+	private static final int TIMEOUT = 100000;
 
 	/** Received queues. */
 	LinkedBlockingQueue<String> events;
@@ -233,11 +235,14 @@ public abstract class AbstractTestSocketIO implements IOCallback {
 	public void emitAndOn() throws Exception {
 		doConnect();
 
+		socket.emit("echo");
+		assertEquals("Test String", "on", takeEvent());
+		
 		String str = "TESTSTRING";
 		socket.emit("echo", str);
 		assertEquals("Test String", "on", takeEvent());
 		assertEquals(str, takeArg());
-
+		
 		JSONObject obj = new JSONObject("{'foo':'bar'}");
 		socket.emit("echo", obj);
 		assertEquals("Test JSON", "on", takeEvent());
@@ -345,6 +350,11 @@ public abstract class AbstractTestSocketIO implements IOCallback {
 		}, "TESTSTRING");
 		assertEquals("ack", takeEvent());
 		assertEquals("TESTSTRING", takeArg());
+		
+		socket.emit(REQUEST_ACKNOWLEDGE, "TESTSTRING");
+		assertEquals("on", takeEvent());
+		assertEquals("TESTSTRING", takeArg());
+		assertEquals("ACKNOWLEDGE:TESTSTRING", takeLine());
 		doClose();
 	}
 
@@ -427,6 +437,7 @@ public abstract class AbstractTestSocketIO implements IOCallback {
 	@Override
 	public void onMessage(String data, IOAcknowledge ack) {
 		events.add("onMessage_string");
+
 		this.args.add(data);
 	}
 
@@ -451,6 +462,9 @@ public abstract class AbstractTestSocketIO implements IOCallback {
 	@Override
 	public void on(String event, IOAcknowledge ack, Object... args) {
 		events.add("on");
+		if(event.equals(REQUEST_ACKNOWLEDGE)) {
+			ack.ack(args);
+		}
 		this.args.addAll(Arrays.asList(args));
 	}
 

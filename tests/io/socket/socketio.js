@@ -13,7 +13,10 @@ io.set('transports', [ process.argv[3] ]);
 
 var main = io.sockets.on('connection', function(socket) {
 	socket.on('echo', function(data) {
-		socket.emit('echo', data);
+		if(data)
+			socket.emit('echo', data);
+		else
+			socket.emit('echo');
 	});
 	socket.on('echoSend', function(data) {
 		if (typeof data == 'object') {
@@ -25,6 +28,11 @@ var main = io.sockets.on('connection', function(socket) {
 	socket.on('echoAck', function(data, ack) {
 		ack(data);
 	});
+	socket.on('requestAcknowledge', function(data) {
+			socket.emit('requestAcknowledge', data, function(data) {
+				process.stdout.write("__:ACKNOWLEDGE:" + data + "\n");
+			});
+	})
 	socket.on('message', function(m) {
 		process.stdout.write("__:MESSAGE:" + m + "\n");
 	});
