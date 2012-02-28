@@ -49,49 +49,46 @@ Using socket.io-java-client is quite simple. But lets see:
 
 ``` java
 
-	// Initialise a socket:
-	SocketIO socket = new IOSocket("http://127.0.0.1:3001");
-	socket.connect(new IOCallback() {
+		SocketIO socket = new SocketIO("http://127.0.0.1:3001/");
+		socket.connect(new IOCallback() {
 			@Override
 			public void onMessage(JSONObject json, IOAcknowledge ack) {
-				System.out.println("We received a message: " + json.toString(2));
-			}
-			
-			@Override
-			public void onMessage(String data, IOAcknowleged ack) {
-				System.out.println("We received a message:" + data);
-			}
-			
-			@Override
-			public void onError(SocketIOException socketIOException) {
-				System.out.println("Something went wrong. Lets exit");
-				System.exit(0);
-			}
-			
-			@Override
-			public void onDisconnect() {
-				System.out.println("Disconnected");
-				System.exit(0);
-			}
-			
-			@Override
-			public void onConnect() {
-				System.out.println("Connected");
-			}
-			
-			@Override
-			public void on(String event, IOAcknowledge ack, Object... args) {
 				try {
-					ack.ack("Roger that!");
-					socket.emit("answer", new JSONObject().put("msg", "Hello again Socket.io!"));
+					System.out.println("Server said:" + json.toString(2));
 				} catch (JSONException e) {
 					e.printStackTrace();
 				}
 			}
+
+			@Override
+			public void onMessage(String data, IOAcknowledge ack) {
+				System.out.println("Server said: " + data);
+			}
+
+			@Override
+			public void onError(SocketIOException socketIOException) {
+				System.out.println("an Error occured");
+				socketIOException.printStackTrace();
+			}
+
+			@Override
+			public void onDisconnect() {
+				System.out.println("Connection terminated.");
+			}
+
+			@Override
+			public void onConnect() {
+				System.out.println("Connection established");
+			}
+
+			@Override
+			public void on(String event, IOAcknowledge ack, Object... args) {
+				System.out.println("Server triggered event '" + event + "'");
+			}
 		});
-	
-	// This will be cached until the server is connected.
-	socket.emit("hello", new JSONObject().put("msg", "Hello Socket.io! :D"));
+		
+		socket.send("Hello Server!");
+
 ```
 
 For further informations, read the [Javadoc](http://s01.de/~tox/hgexport/socket.io-java-client/).
