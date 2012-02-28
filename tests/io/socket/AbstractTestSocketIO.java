@@ -151,7 +151,7 @@ public abstract class AbstractTestSocketIO implements IOCallback {
 	}
 
 	/**
-	 * Tears down this test. Asures queues are empty.
+	 * Tears down this test. Assures queues are empty.
 	 * 
 	 * @throws Exception
 	 *             the exception
@@ -211,7 +211,7 @@ public abstract class AbstractTestSocketIO implements IOCallback {
 	// BEGIN TESTS
 
 	/**
-	 * Tests sending of a message to the server. Asures result by stdout.
+	 * Tests sending of a message to the server. Assures result by stdout.
 	 * 
 	 * @throws Exception
 	 *             the exception
