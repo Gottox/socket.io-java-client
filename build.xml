@@ -83,8 +83,13 @@
         <property name="build.compiler" value="org.eclipse.jdt.core.JDTCompilerAdapter"/>
         <antcall target="build"/>
     </target>
-    <target name="Example">
-        <java classname="Example" failonerror="true" fork="yes">
+    <target name="BasicExample">
+        <java classname="BasicExample" failonerror="true" fork="yes">
+            <classpath refid="socket.io-java-client.classpath"/>
+        </java>
+    </target>
+    <target name="AcknowledgeExample">
+        <java classname="AcknowledgeExample" failonerror="true" fork="yes">
             <classpath refid="socket.io-java-client.classpath"/>
         </java>
     </target>
