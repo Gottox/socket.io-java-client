@@ -1,7 +1,7 @@
 /*
  * socket.io-java-client IOConnection.java
  *
- * Copyright (c) 2011, Enno Boland
+ * Copyright (c) 2012, Enno Boland
  * socket.io-java-client is a implementation of the socket.io protocol in Java.
  * 
  * See LICENSE file for more information
@@ -26,6 +26,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+// TODO: Auto-generated Javadoc
 /**
  * The Class IOConnection.
  */
@@ -160,15 +161,6 @@ class IOConnection {
 			}
 		}
 	}
-
-	/** The heart beat task. */
-	final TimerTask heartBeatTask = new TimerTask() {
-
-		@Override
-		public void run() {
-
-		}
-	};
 
 	/**
 	 * The Class ConnectThread. Handles connecting to the server with an
@@ -307,12 +299,12 @@ class IOConnection {
 	}
 
 	/**
-	 * Synthesize ack.
+	 * adds an {@link IOAcknowledge} to an {@link IOMessage}.
 	 * 
 	 * @param message
-	 *            the message
+	 *            the {@link IOMessage}
 	 * @param ack
-	 *            the ack
+	 *            the {@link IOAcknowledge}
 	 */
 	private void synthesizeAck(IOMessage message, IOAcknowledge ack) {
 		if (ack != null) {
@@ -357,9 +349,9 @@ class IOConnection {
 
 	/**
 	 * Connects a socket to the IOConnection.
-	 * 
-	 * @param socket
-	 *            the socket to be connected
+	 *
+	 * @param socket the socket to be connected
+	 * @return true, if successfully registered on this transport, otherwise false.
 	 */
 	public boolean register(SocketIO socket) {
 		String namespace = socket.getNamespace();
@@ -708,9 +700,9 @@ class IOConnection {
 	}
 
 	/**
-	 * Returns the session id. This should be called from the
+	 * Returns the session id. This should be called from a {@link IOTransport}
 	 * 
-	 * @return the session id {@link IOTransport} to connect to the right
+	 * @return the session id to connect to the right
 	 *         Session.
 	 */
 	public String getSessionId() {
@@ -831,7 +823,8 @@ class IOConnection {
 	}
 
 	/**
-	 * Gets the current state of this IOConnection
+	 * Gets the current state of this IOConnection.
+	 *
 	 * @return current state
 	 */
 	private synchronized int getState() {
@@ -839,15 +832,17 @@ class IOConnection {
 	}
 
 	/**
-	 * Sets the current state of this IOConnection
-	 * @param new state
+	 * Sets the current state of this IOConnection.
+	 *
+	 * @param state the new state
 	 */
 	private synchronized void setState(int state) {
 		this.state = state;
 	}
 
 	/**
-	 * gets the currently used transport
+	 * gets the currently used transport.
+	 *
 	 * @return currently used transport
 	 */
 	public IOTransport getTransport() {

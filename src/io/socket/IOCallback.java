@@ -1,7 +1,7 @@
 /*
  * socket.io-java-client IOCallback.java
  *
- * Copyright (c) 2011, ${author}
+ * Copyright (c) 2012, ${author}
  * socket.io-java-client is a implementation of the socket.io protocol in Java.
  * 
  * See LICENSE file for more information

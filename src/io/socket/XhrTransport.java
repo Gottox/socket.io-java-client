@@ -2,7 +2,7 @@
  * socket.io-java-client XhrTransport.java
  *
  * Copyright (c) 2012, Enno Boland
- * PROJECT DESCRIPTION
+ * socket.io-java-client is a implementation of the socket.io protocol in Java.
  * 
  * See LICENSE file for more information
  */
