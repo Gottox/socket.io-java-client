@@ -275,9 +275,12 @@ class IOConnection {
 	 *         server doesn't request one.
 	 */
 	private IOAcknowledge remoteAcknowledge(IOMessage message) {
-		final String id = message.getId();
-		if (id.endsWith("+") == false)
+		String _id = message.getId();
+		if (_id.equals(""))
 			return null;
+		else if(_id.endsWith("+") == false)
+			_id = _id+"+";
+		final String id = _id;
 		final String endPoint = message.getEndpoint();
 		return new IOAcknowledge() {
 			@Override
@@ -291,7 +294,6 @@ class IOConnection {
 								"You can only put values in IOAcknowledge.ack() which can be handled by JSONArray.put()",
 								e));
 					}
-
 				}
 				IOMessage ackMsg = new IOMessage(IOMessage.TYPE_ACK, endPoint,
 						id + array.toString());
@@ -312,7 +314,7 @@ class IOConnection {
 		if (ack != null) {
 			int id = nextId++;
 			acknowledge.put(id, ack);
-			message.setId(id + "+");
+			message.setId(id+"+");
 		}
 	}
 
@@ -579,7 +581,7 @@ class IOConnection {
 							remoteAcknowledge(message));
 				} catch (Exception e) {
 					error(new SocketIOException(
-							"Exception was thrown in onMessage(JSONObject)\n"
+							"Exception was thrown in onMessage(JSONObject).\n"
 									+ "Message was: " + message.toString(), e));
 				}
 			} catch (JSONException e) {
@@ -604,7 +606,7 @@ class IOConnection {
 							remoteAcknowledge(message), argsArray);
 				} catch (Exception e) {
 					error(new SocketIOException(
-							"Exception was thrown in on(String, JSONObject[])"
+							"Exception was thrown in on(String, JSONObject[]).\n"
 									+ "Message was: " + message.toString(), e));
 				}
 			} catch (JSONException e) {
