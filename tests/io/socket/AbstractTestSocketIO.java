@@ -28,7 +28,7 @@ import org.junit.runner.RunWith;
 /**
  * The Class AbstractTestSocketIO.
  */
-@RunWith(io.socket.RandomBlockJUnit4ClassRunner.class)
+@RunWith(io.socket.testutils.RandomBlockJUnit4ClassRunner.class)
 public abstract class AbstractTestSocketIO implements IOCallback {
 
 	private static final String REQUEST_ACKNOWLEDGE = "requestAcknowledge";
@@ -92,7 +92,7 @@ public abstract class AbstractTestSocketIO implements IOCallback {
 		args = new LinkedBlockingQueue<Object>();
 		System.out.println("Connect with " + transport);
 		node = Runtime.getRuntime().exec(
-				new String[] { NODE, "./tests/io/socket/socketio.js",
+				new String[] { NODE, "./tests/io/socket/testutils/socketio.js",
 						"" + getPort(), transport });
 
 		stdoutThread = new Thread("stdoutThread") {
@@ -291,7 +291,7 @@ public abstract class AbstractTestSocketIO implements IOCallback {
 		// which isn't connected yet, this sleep assures that these events
 		// aren't submitted. This is a server side problem. Maybe socket.io-java
 		// could cache these events until the server drops the connect event.
-		Thread.sleep(100);
+		Thread.sleep(200);
 		doConnect();
 
 		ns1.disconnect();

@@ -1,4 +1,4 @@
-package io.socket;
+package io.socket.testutils;
 
 import java.util.Collections;
 
