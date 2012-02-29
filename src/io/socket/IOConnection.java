@@ -180,6 +180,7 @@ class IOConnection {
 		 * Tries handshaking if necessary and connects with corresponding
 		 * transport afterwards.
 		 */
+		@Override
 		public void run() {
 			if (IOConnection.this.getState() == STATE_INIT)
 				handshake();

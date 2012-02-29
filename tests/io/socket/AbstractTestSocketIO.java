@@ -96,6 +96,7 @@ public abstract class AbstractTestSocketIO implements IOCallback {
 						"" + getPort(), transport });
 
 		stdoutThread = new Thread("stdoutThread") {
+			@Override
 			public void run() {
 				BufferedReader reader = new BufferedReader(
 						new InputStreamReader(node.getInputStream()));
@@ -118,6 +119,7 @@ public abstract class AbstractTestSocketIO implements IOCallback {
 			}
 		};
 		stderrThread = new Thread("stderrThread") {
+			@Override
 			public void run() {
 				BufferedReader reader = new BufferedReader(
 						new InputStreamReader(node.getErrorStream()));

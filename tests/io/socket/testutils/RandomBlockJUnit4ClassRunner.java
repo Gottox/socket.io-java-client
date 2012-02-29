@@ -16,7 +16,8 @@ public class RandomBlockJUnit4ClassRunner extends BlockJUnit4ClassRunner {
     }
    
     
-    protected java.util.List<org.junit.runners.model.FrameworkMethod> computeTestMethods() {
+    @Override
+	protected java.util.List<org.junit.runners.model.FrameworkMethod> computeTestMethods() {
     	java.util.List<org.junit.runners.model.FrameworkMethod> methods = super.computeTestMethods();
     	Collections.shuffle(methods);
     	return methods;
