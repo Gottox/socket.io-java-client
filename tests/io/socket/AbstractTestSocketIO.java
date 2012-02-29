@@ -10,6 +10,8 @@ package io.socket;
 
 import static org.junit.Assert.*;
 
+import io.socket.testutils.MutateProxy;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -63,6 +65,8 @@ public abstract class AbstractTestSocketIO implements IOCallback {
 	/** The socket to test. */
 	private SocketIO socket;
 
+	private MutateProxy proxy = null;
+
 	/** The transport of this test */
 	static protected String transport = null;
 
@@ -94,6 +98,8 @@ public abstract class AbstractTestSocketIO implements IOCallback {
 		node = Runtime.getRuntime().exec(
 				new String[] { NODE, "./tests/io/socket/testutils/socketio.js",
 						"" + getPort(), transport });
+		//proxy = new MutateProxy(getProxyPort(), getPort());
+		//proxy.start();
 
 		stdoutThread = new Thread("stdoutThread") {
 			@Override
@@ -184,7 +190,7 @@ public abstract class AbstractTestSocketIO implements IOCallback {
 	 */
 	void doConnect() throws Exception {
 		// Setting up socket connection
-		socket = new SocketIO("http://127.0.0.1:" + getPort(), this);
+		socket = new SocketIO("http://127.0.0.1:" + getProxyPort(), this);
 		assertEquals("onConnect", takeEvent());
 		assertEquals(transport, socket.getTransport());
 	}
@@ -285,7 +291,7 @@ public abstract class AbstractTestSocketIO implements IOCallback {
 	 */
 	@Test(timeout = TIMEOUT)
 	public void namespaces() throws Exception {
-		SocketIO ns1 = new SocketIO("http://127.0.0.1:" + getPort() + "/ns1",
+		SocketIO ns1 = new SocketIO("http://127.0.0.1:" + getProxyPort() + "/ns1",
 				this);
 		assertEquals("onConnect", takeEvent());
 
@@ -299,14 +305,14 @@ public abstract class AbstractTestSocketIO implements IOCallback {
 		ns1.disconnect();
 		assertEquals("onDisconnect", takeEvent());
 
-		SocketIO ns2 = new SocketIO("http://127.0.0.1:" + getPort() + "/ns2",
+		SocketIO ns2 = new SocketIO("http://127.0.0.1:" + getProxyPort() + "/ns2",
 				this);
 		assertEquals("onConnect", takeEvent());
 
 		assertEquals("onMessage_string", takeEvent());
 		assertEquals("ns2", takeArg());
 
-		SocketIO ns2_2 = new SocketIO("http://127.0.0.1:" + getPort() + "/ns2",
+		SocketIO ns2_2 = new SocketIO("http://127.0.0.1:" + getProxyPort() + "/ns2",
 				this);
 		assertEquals("onConnect", takeEvent());
 
@@ -488,8 +494,12 @@ public abstract class AbstractTestSocketIO implements IOCallback {
 	 */
 	public int getPort() {
 		if (port == -1)
-			port = 2048 + (int) (Math.random() * 10000);
+			port = 2048 + (int) (Math.random() * 10000) * 2;
 		return port;
+	}
+	
+	public int getProxyPort() {
+		return getPort() + (proxy == null ? 0 : 1);
 	}
 
 }
