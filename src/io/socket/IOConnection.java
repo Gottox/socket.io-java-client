@@ -377,7 +377,13 @@ class IOConnection {
 		if (transport != null)
 			transport.disconnect();
 		sockets.clear();
-		connections.remove(urlStr);
+		synchronized (connections) {
+			List<IOConnection> con = connections.get(urlStr);
+			if (con.size() > 1)
+				con.remove(this);
+			else
+				connections.remove(urlStr);
+		}
 		logger.info("Cleanup");
 		backgroundTimer.cancel();
 	}
@@ -425,7 +431,8 @@ class IOConnection {
 	 * Invalidates an {@link IOTransport}, used for forced reconnecting.
 	 */
 	private void invalidateTransport() {
-		transport.invalidate();
+		if (transport != null)
+			transport.invalidate();
 		transport = null;
 	}
 
@@ -487,6 +494,7 @@ class IOConnection {
 	 */
 	public void transportDisconnected() {
 		this.lastException = null;
+		setState(STATE_INTERRUPTED);
 		reconnect();
 	}
 
@@ -665,9 +673,7 @@ class IOConnection {
 	public void reconnect() {
 		synchronized (this) {
 			if (getState() != STATE_INVALID) {
-				if (transport != null)
-					invalidateTransport();
-				transport = null;
+				invalidateTransport();
 				setState(STATE_INTERRUPTED);
 				if (reconnectTask != null) {
 					reconnectTask.cancel();
