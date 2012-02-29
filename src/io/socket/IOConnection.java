@@ -708,7 +708,7 @@ class IOConnection {
 	 *            the message
 	 */
 	private void warning(String message) {
-		System.err.println(message);
+		logger.info(message);
 	}
 
 	/**
