@@ -66,10 +66,11 @@ public class MutateProxy extends Thread {
 		public void run() {
 			try {
 				byte[] buffer = new byte[1024];
+				int length;
 				InputStream fromStream = from.getInputStream();
 				OutputStream toStream = to.getOutputStream();
-				while (fromStream.read(buffer) > 0) {
-					toStream.write(buffer);
+				while ((length = fromStream.read(buffer)) >= 0) {
+					toStream.write(buffer, 0, length);
 					toStream.flush();
 				}
 			} catch (IOException e) {

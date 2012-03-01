@@ -98,8 +98,8 @@ public abstract class AbstractTestSocketIO implements IOCallback {
 		node = Runtime.getRuntime().exec(
 				new String[] { NODE, "./tests/io/socket/testutils/socketio.js",
 						"" + getPort(), transport });
-		//proxy = new MutateProxy(getProxyPort(), getPort());
-		//proxy.start();
+		proxy = new MutateProxy(getPort()+1, getPort());
+		proxy.start();
 
 		stdoutThread = new Thread("stdoutThread") {
 			@Override
