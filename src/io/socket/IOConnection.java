@@ -590,7 +590,7 @@ class IOConnection {
 									+ "Message was: " + message.toString(), e));
 				}
 			} catch (JSONException e) {
-				warning("Malformated JSON received");
+				logger.warning("Malformated JSON received");
 			}
 			break;
 		case IOMessage.TYPE_EVENT:
@@ -615,7 +615,7 @@ class IOConnection {
 									+ "Message was: " + message.toString(), e));
 				}
 			} catch (JSONException e) {
-				warning("Malformated JSON received");
+				logger.warning("Malformated JSON received");
 			}
 			break;
 
@@ -626,7 +626,7 @@ class IOConnection {
 					int id = Integer.parseInt(data[0]);
 					IOAcknowledge ack = acknowledge.get(id);
 					if (ack == null)
-						warning("Received unknown ack packet");
+						logger.warning("Received unknown ack packet");
 					else {
 						JSONArray array = new JSONArray(data[1]);
 						Object[] args = new Object[array.length()];
@@ -636,9 +636,9 @@ class IOConnection {
 						ack.ack(args);
 					}
 				} catch (NumberFormatException e) {
-					warning("Received malformated Acknowledge! This is potentially filling up the acknowledges!");
+					logger.warning("Received malformated Acknowledge! This is potentially filling up the acknowledges!");
 				} catch (JSONException e) {
-					warning("Received malformated Acknowledge data!");
+					logger.warning("Received malformated Acknowledge data!");
 				}
 			} else if (data.length == 1) {
 				sendPlain("6:::" + data[0]);
@@ -661,7 +661,7 @@ class IOConnection {
 		case IOMessage.TYPE_NOOP:
 			break;
 		default:
-			warning("Unkown type received" + message.getType());
+			logger.warning("Unkown type received" + message.getType());
 			break;
 		}
 	}
@@ -695,20 +695,10 @@ class IOConnection {
 	private IOCallback findCallback(IOMessage message) {
 		SocketIO socket = sockets.get(message.getEndpoint());
 		if (socket == null) {
-			warning("Cannot find socket for '" + message.getEndpoint() + "'");
+			logger.warning("Cannot find socket for '" + message.getEndpoint() + "'");
 			return DUMMY_CALLBACK;
 		}
 		return socket.getCallback();
-	}
-
-	/**
-	 * Handles a non-fatal error.
-	 * 
-	 * @param message
-	 *            the message
-	 */
-	private void warning(String message) {
-		logger.info(message);
 	}
 
 	/**
