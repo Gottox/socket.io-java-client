@@ -2,14 +2,13 @@
 
 # Socket.IO-Client for Java
 
-socket.io-java-client is a simple implementation of [socket.io](http://socket.io) for Java.
+socket.io-java-client is an easy to use implementation of [socket.io](http://socket.io) for Java.
 
 It uses [Weberknecht](http://code.google.com/p/weberknecht/) as transport backend, but it's easy
 to write your own transport. See description below. An XHR-Transport is included, too. But it's
 not functional in its current state.
 
-The API is inspired by [java-socket.io.client](https://github.com/benkay/java-socket.io.client) but as the license
-of this project was unclear and it had some nasty bugs, I decided to write socket.io-java-client from the scratch.
+The API is inspired by [java-socket.io.client](https://github.com/benkay/java-socket.io.client).
 
 Features:
 
@@ -42,6 +41,10 @@ to build a jar-file:
 	ls jar/socketio.jar
 
 You'll find the socket.io-jar in jar/socketio.jar 
+
+### Bugs
+
+Please report any bugs feature requests to [the Github issue tracker](https://github.com/Gottox/socket.io-java-client/issues)
 
 ## How to use
 
