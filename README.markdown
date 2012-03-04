@@ -90,6 +90,7 @@ Using socket.io-java-client is quite simple. But lets see:
 			}
 		});
 		
+		// This line is cached until the connection is establisched.
 		socket.send("Hello Server!");
 
 ```

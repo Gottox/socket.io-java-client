@@ -54,6 +54,7 @@ public class BasicExample2 {
 			}
 		});
 		
+		// This line is cached until the connection is establisched.
 		socket.send("Hello Server!");
 	}
 }
