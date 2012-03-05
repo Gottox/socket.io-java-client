@@ -42,7 +42,7 @@ public abstract class AbstractTestSocketIO implements IOCallback {
 	private int port = -1;
 
 	/** Timeout for the tests */
-	private static final int TIMEOUT = 1000;
+	private static final int TIMEOUT = 3000;
 
 	/** Received queues. */
 	LinkedBlockingQueue<String> events;
