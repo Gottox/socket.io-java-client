@@ -12,6 +12,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Properties;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 /**
@@ -218,7 +219,7 @@ public class SocketIO {
 	 * @param event
 	 *            the event name
 	 * @param args
-	 *            the arguments
+	 *            arguments. can be any argument {@link JSONArray#put(Object)} can take. 
 	 */
 	public void emit(final String event, final Object... args) {
 		this.connection.emit(this, event, null, args);
@@ -234,7 +235,7 @@ public class SocketIO {
 	 * @param ack
 	 *            an acknowledge implementation
 	 * @param args
-	 *            the arguments
+	 *            arguments. can be any argument {@link JSONArray#put(Object)} can take. 
 	 */
 	public void emit(final String event, IOAcknowledge ack,
 			final Object... args) {
@@ -360,21 +361,22 @@ public class SocketIO {
 	 * @param headers
 	 *            the headers used while handshaking
 	 */
-	SocketIO setHeaders(Properties headers) {
+	void setHeaders(Properties headers) {
 		this.headers = headers;
-		return this;
 	}
 
 	/**
 	 * Adds an header to the {@link #headers}
+	 * @return SocketIO.this for daisy chaining.
 	 */
-	public void addHeader(String key, String value) {
+	public SocketIO addHeader(String key, String value) {
 		if (this.connection != null)
 			throw new RuntimeException(
 					"You may only set headers before connecting.\n"
 							+ " Try to use new SocketIO().addHeader(key, value).connect(host, callback) "
 							+ "instead of SocketIO(host, callback).addHeader(key, value)");
 		this.headers.setProperty(key, value);
+		return this;
 	}
 
 	/**
