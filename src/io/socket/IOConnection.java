@@ -17,7 +17,9 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Properties;
 import java.util.Scanner;
+import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -169,11 +171,29 @@ class IOConnection {
 	 * {@link IOTransport}
 	 */
 	private class ConnectThread extends Thread {
+		
+		/** Custom Request headers used while handshaking */
+		private Properties headers = new Properties();
+		
+		
 		/**
 		 * Instantiates a new background thread.
 		 */
 		public ConnectThread() {
 			super("ConnectThread");
+		}
+		
+		/**
+		 * Instantiates a new background thread passing the header
+		 * will be used while handshaking.
+		 * 
+		 * @param headers
+		 * 			the headers will be used while handshaking
+		 */
+		public ConnectThread(Properties headers) {
+			this();
+			if ( headers != null )
+				this.headers = headers;
 		}
 
 		/**
@@ -201,6 +221,15 @@ class IOConnection {
 				connection = url.openConnection();
 				connection.setConnectTimeout(connectTimeout);
 				connection.setReadTimeout(connectTimeout);
+				
+				/* Setting the request headers */
+				if ( ! this.headers.isEmpty() ){
+					Set<Object> keys = this.headers.keySet();
+					for ( Object key : keys ){
+						String k = (String) key;  
+						connection.setRequestProperty( k , this.headers.getProperty(k) );
+					}
+				}
 
 				InputStream stream = connection.getInputStream();
 				Scanner in = new Scanner(stream);
@@ -332,7 +361,12 @@ class IOConnection {
 		}
 		firstSocket = socket;
 		sockets.put(socket.getNamespace(), socket);
-		new ConnectThread().start();
+		
+		Properties h = socket.getHeaders();
+		if ( h.isEmpty() )
+			new ConnectThread().start();
+		else
+			new ConnectThread( h ).start();
 	}
 
 	/**

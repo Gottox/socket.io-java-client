@@ -10,6 +10,7 @@ package io.socket;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Properties;
 
 import org.json.JSONObject;
 
@@ -20,12 +21,16 @@ public class SocketIO {
 
 	/** callback of this Socket. */
 	private IOCallback callback;
-
+	
 	/** connection of this Socket. */
 	private IOConnection connection;
 
 	/** namespace. */
 	private String namespace;
+	
+	/** Used for setting header during handshaking. */
+	private Properties headers;
+	
 
 	private URL url;
 
@@ -35,7 +40,7 @@ public class SocketIO {
 	 * {@link #connect(String, IOCallback)}
 	 */
 	public SocketIO() {
-
+		this.headers = new Properties();
 	}
 
 	/**
@@ -50,6 +55,29 @@ public class SocketIO {
 	public SocketIO(final String url) throws MalformedURLException {
 		if (url == null)
 			throw new RuntimeException("url may not be null.");
+		setAndConnect(new URL(url), null);
+	}
+	
+	
+	/**
+	 * Instantiates a new socket.io connection and sets the request headers
+	 * used while connecting the first time for authorizing. 
+	 * The object connects after calling {@link #connect(IOCallback)}
+	 * 
+	 * @param url
+	 *            the url
+	 * @param headers
+	 *            the {@link Properties headers} used while handshaking
+	 * @throws MalformedURLException
+	 *             the malformed url exception
+	 */
+	public SocketIO(final String url, Properties headers) throws MalformedURLException {
+		if (url == null)
+			throw new RuntimeException("url may not be null.");
+		
+		if ( headers != null )
+			this.headers = headers;
+		
 		setAndConnect(new URL(url), null);
 	}
 
@@ -311,5 +339,32 @@ public class SocketIO {
 	public String getTransport() {
 		IOTransport transport = this.connection.getTransport();
 		return transport != null ? transport.getName() : null;
+	}
+	
+	/**
+	 * Returns the headers used while handshaking
+	 * 
+	 * @return the headers used while handshaking
+	 */
+	public Properties getHeaders() {
+		return this.headers;
+	}
+	
+	/**
+	 * Adds an header to the {@link #headers}
+	 */
+	public void addHeader(String key, String value){
+		this.headers.setProperty( key, value );
+	}
+	
+	/**
+	 * Returns the header value
+	 * 
+	 * @return the header value or {@code null} if not present
+	 */
+	public String getHeader(String key){
+		if ( this.headers.contains(key) )
+			return this.headers.getProperty( key );
+		return null;
 	}
 }
