@@ -86,7 +86,7 @@ For further informations, read the [Javadoc](http://s01.de/~tox/hgexport/socket.
  
 Both repositories are synchronized and up to date.
 
-### Building
+## Building
 
 to build a jar-file:
 
@@ -96,7 +96,7 @@ to build a jar-file:
 
 You'll find the socket.io-jar in jar/socketio.jar 
 
-### Bugs
+## Bugs
 
 Please report any bugs feature requests to [the Github issue tracker](https://github.com/Gottox/socket.io-java-client/issues)
 
