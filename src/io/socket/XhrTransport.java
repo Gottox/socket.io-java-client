@@ -10,9 +10,11 @@ package io.socket;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
@@ -54,6 +56,8 @@ class XhrTransport implements IOTransport {
 	 */
 	private class PollThread extends Thread {
 
+		private static final String CHARSET = "UTF-8";
+
 		/**
 		 * Instantiates a new receiver thread.
 		 */
@@ -72,40 +76,39 @@ class XhrTransport implements IOTransport {
 			while (isConnect()) {
 				try {
 					String line;
-					URL url = new URL(XhrTransport.this.url.toString() + "?t=" + System.currentTimeMillis());
+					URL url = new URL(XhrTransport.this.url.toString() + "?t="
+							+ System.currentTimeMillis());
 					urlConnection = (HttpURLConnection) url.openConnection();
 					if (!queue.isEmpty()) {
 						urlConnection.setDoOutput(true);
-						urlConnection.setRequestMethod("POST") ;
-						BufferedWriter output = new BufferedWriter(
-								new OutputStreamWriter(
-										urlConnection.getOutputStream()));
+						OutputStream output = urlConnection.getOutputStream();
 						if (queue.size() == 1) {
 							line = queue.poll();
-							output.write(line);
-							System.out.println(line);
+							output.write(line.getBytes(CHARSET));
 						} else {
 							Iterator<String> iter = queue.iterator();
 							while (iter.hasNext()) {
-								line = iter.next();
-								output.write("\ufffd" + line.length()
-										+ "\ufffd" + line);
-								System.out.println("\ufffd" + line.length()
-										+ "\ufffd" + line);
+								line = iter.next() + "\n";
+								line = "\ufffd" + line.length()
+										+ "\ufffd";
+								output.write(line.getBytes(CHARSET));
 								iter.remove();
 							}
 						}
 						output.close();
+						InputStream input = urlConnection.getInputStream();
+						byte[] buffer = new byte[1024];
+						while(input.read(buffer) > 0) {
+						}
+						input.close();
 					} else {
 						setBlocked(true);
 						InputStream plainInput = urlConnection.getInputStream();
-						if (plainInput != null) {
-							BufferedReader input = new BufferedReader(
-									new InputStreamReader(plainInput));
-							while ((line = input.readLine()) != null) {
-								if (connection != null)
-									connection.transportMessage(line);
-							}
+						BufferedReader input = new BufferedReader(
+								new InputStreamReader(plainInput));
+						while ((line = input.readLine()) != null) {
+							if (connection != null)
+								connection.transportMessage(line);
 						}
 						setBlocked(false);
 					}
@@ -115,6 +118,10 @@ class XhrTransport implements IOTransport {
 						connection.transportError(e);
 						return;
 					}
+				}
+				try {
+					sleep(100);
+				} catch (InterruptedException e) {
 				}
 			}
 			connection.transportDisconnected();
