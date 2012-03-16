@@ -8,8 +8,6 @@
  */
 package io.socket;
 
-
-
 /**
  * The Class SocketIOException.
  */
@@ -20,8 +18,9 @@ public class SocketIOException extends Exception {
 
 	/**
 	 * Instantiates a new SocketIOException.
-	 *
-	 * @param message the message
+	 * 
+	 * @param message
+	 *            the message
 	 */
 	public SocketIOException(String message) {
 		super(message);
@@ -29,8 +28,9 @@ public class SocketIOException extends Exception {
 
 	/**
 	 * Instantiates a new SocketIOException.
-	 *
-	 * @param ex the exception.
+	 * 
+	 * @param ex
+	 *            the exception.
 	 */
 	public SocketIOException(String message, Exception ex) {
 		super(message, ex);
