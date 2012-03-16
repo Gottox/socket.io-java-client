@@ -218,7 +218,7 @@ public class SocketIO {
 	 * @param event
 	 *            the event name
 	 * @param args
-	 *            arguments. can be any argument {@link JSONArray#put(Object)} can take. 
+	 *            arguments. can be any argument {@link org.json.JSONArray#put(Object)} can take. 
 	 */
 	public void emit(final String event, final Object... args) {
 		this.connection.emit(this, event, null, args);
@@ -234,7 +234,7 @@ public class SocketIO {
 	 * @param ack
 	 *            an acknowledge implementation
 	 * @param args
-	 *            arguments. can be any argument {@link JSONArray#put(Object)} can take. 
+	 *            arguments. can be any argument {@link org.json.JSONArray#put(Object)} can take. 
 	 */
 	public void emit(final String event, IOAcknowledge ack,
 			final Object... args) {

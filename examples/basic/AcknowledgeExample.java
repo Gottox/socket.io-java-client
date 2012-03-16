@@ -1,3 +1,4 @@
+package basic;
 /*
  * socket.io-java-client Test.java
  *
