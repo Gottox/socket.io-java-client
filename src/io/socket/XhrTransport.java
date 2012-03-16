@@ -89,8 +89,8 @@ class XhrTransport implements IOTransport {
 							Iterator<String> iter = queue.iterator();
 							while (iter.hasNext()) {
 								line = iter.next() + "\n";
-								line = "\ufffd" + line.length()
-										+ "\ufffd";
+								line = IOConnection.FRAME_DELIMITER + line.length()
+										+ IOConnection.FRAME_DELIMITER;
 								output.write(line.getBytes(CHARSET));
 								iter.remove();
 							}
@@ -105,10 +105,10 @@ class XhrTransport implements IOTransport {
 						setBlocked(true);
 						InputStream plainInput = urlConnection.getInputStream();
 						BufferedReader input = new BufferedReader(
-								new InputStreamReader(plainInput));
+								new InputStreamReader(plainInput, CHARSET));
 						while ((line = input.readLine()) != null) {
 							if (connection != null)
-								connection.transportMessage(line);
+								connection.transportData(line);
 						}
 						setBlocked(false);
 					}
