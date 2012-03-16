@@ -8,9 +8,6 @@
  */
 package io.socket;
 
-import java.util.Arrays;
-import java.util.Iterator;
-
 /**
  * The Class IOMessage.
  */
@@ -49,7 +46,7 @@ class IOMessage {
 	/** Index of the id field in a message */
 	public static final int FIELD_ID = 1;
 
-	/** Index of the endpoint field in a message */
+	/** Index of the end point field in a message */
 	public static final int FIELD_ENDPOINT = 2;
 
 	/** Index of the data field in a message */
@@ -59,10 +56,10 @@ class IOMessage {
 	public static final int NUM_FIELDS = 4;
 
 	/** The field values */
-	String[] fields = new String[NUM_FIELDS];
+	private final String[] fields = new String[NUM_FIELDS];
 
 	/** Type */
-	int type;
+	private int type;
 	
 	/**
 	 * Instantiates a new IOMessage by given data.
@@ -77,9 +74,9 @@ class IOMessage {
 	 *            the data
 	 */
 	public IOMessage(int type, String id, String namespace, String data) {
+		this.type = type;
 		this.fields[FIELD_ID] = id;
 		this.fields[FIELD_TYPE] = "" + type;
-		this.type = type;
 		this.fields[FIELD_ENDPOINT] = namespace;
 		this.fields[FIELD_DATA] = data;
 	}
@@ -90,7 +87,7 @@ class IOMessage {
 	 * @param type
 	 *            the type
 	 * @param namespace
-	 *            the namespace
+	 *            the name space
 	 * @param data
 	 *            the data
 	 */
@@ -120,15 +117,12 @@ class IOMessage {
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
-		Iterator<String> i = Arrays.asList(fields).iterator();
-		while(i.hasNext()) {
-			String field = i.next();
-			if (field != null)
-				builder.append(field);
-			if(i.hasNext())
-				builder.append(':');
+		for(int i = 0; i < fields.length; i++) {
+			builder.append(':');
+			if (fields[i] != null)
+				builder.append(fields[i]);
 		}
-		return builder.toString();
+		return builder.substring(1);
 	}
 
 	/**
