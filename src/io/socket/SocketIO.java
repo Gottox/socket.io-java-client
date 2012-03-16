@@ -12,7 +12,6 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Properties;
 
-import org.json.JSONArray;
 import org.json.JSONObject;
 
 /**
