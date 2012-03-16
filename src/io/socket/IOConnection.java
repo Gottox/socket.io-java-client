@@ -15,6 +15,7 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map.Entry;
@@ -32,9 +33,11 @@ import org.json.JSONObject;
 /**
  * The Class IOConnection.
  */
-class IOConnection {
+class IOConnection implements IOCallback {
 	/** Debug logger */
 	static final Logger logger = Logger.getLogger("io.socket");
+	
+	public static final String FRAME_DELIMITER = "\ufffd";
 
 	/** The Constant STATE_INIT. */
 	private static final int STATE_INIT = 0;
@@ -92,6 +95,9 @@ class IOConnection {
 
 	/** Custom Request headers used while handshaking */
 	private Properties headers;
+
+	/** Input buffer used for framing */
+	private final StringBuilder inputBuffer = new StringBuilder();
 
 	/**
 	 * The first socket to be connected. the socket.io server does not send a
@@ -286,8 +292,8 @@ class IOConnection {
 		String _id = message.getId();
 		if (_id.equals(""))
 			return null;
-		else if(_id.endsWith("+") == false)
-			_id = _id+"+";
+		else if (_id.endsWith("+") == false)
+			_id = _id + "+";
 		final String id = _id;
 		final String endPoint = message.getEndpoint();
 		return new IOAcknowledge() {
@@ -322,7 +328,7 @@ class IOConnection {
 		if (ack != null) {
 			int id = nextId++;
 			acknowledge.put(id, ack);
-			message.setId(id+"+");
+			message.setId(id + "+");
 		}
 	}
 
@@ -523,11 +529,38 @@ class IOConnection {
 	}
 
 	/**
-	 * Transport message.
+	 * {@link IOTransport} should call this function if it does not support framing. If it does, transportMessage should be used
 	 * 
 	 * @param text
-	 *            the text {@link IOTransport} calls this, when a message has
-	 *            been received.
+	 *            the text
+	 */
+	public void transportData(String text) {
+		if(!text.startsWith(FRAME_DELIMITER)) {
+			transportMessage(text);
+			return;
+		}
+		
+		Iterator<String> fragments = Arrays.asList(text.split(FRAME_DELIMITER)).listIterator(1);
+		while (fragments.hasNext()) {
+			int length = Integer.parseInt(fragments.next());
+			String string = (String) fragments.next();
+			// Potential BUG: it is not defined if length is in bytes or characters. Assuming characters.
+			
+			if(length != string.length()) {
+				error(new SocketIOException("Garbage from server: " + text));
+				return;
+			}
+			
+			transportMessage(string);
+		}
+	}
+
+	/**
+	 * Transport message. {@link IOTransport} calls this, when a message has
+	 * been received.
+	 * 
+	 * @param text
+	 *            the text
 	 */
 	public void transportMessage(String text) {
 		logger.info("< " + text);
@@ -541,21 +574,16 @@ class IOConnection {
 		resetTimeout();
 		switch (message.getType()) {
 		case IOMessage.TYPE_DISCONNECT:
-			if (message.getEndpoint().equals("")) {
-				for (SocketIO socket : sockets.values()) {
-					socket.getCallback().onDisconnect();
-				}
-			} else
-				try {
-					findCallback(message).onDisconnect();
-				} catch (Exception e) {
-					error(new SocketIOException(
-							"Exception was thrown in onDisconnect()", e));
-				}
+			try {
+				findCallback(message).onDisconnect();
+			} catch (Exception e) {
+				error(new SocketIOException(
+						"Exception was thrown in onDisconnect()", e));
+			}
 			break;
 		case IOMessage.TYPE_CONNECT:
 			try {
-				if (firstSocket != null && message.getEndpoint().equals("")) {
+				if (firstSocket != null && "".equals(message.getEndpoint())) {
 					if (firstSocket.getNamespace().equals("")) {
 						firstSocket.getCallback().onConnect();
 					} else {
@@ -607,7 +635,7 @@ class IOConnection {
 		case IOMessage.TYPE_EVENT:
 			try {
 				JSONObject event = new JSONObject(message.getData());
-				Object[] argsArray = new Object[0];
+				Object[] argsArray = empty;
 				if (event.has("args")) {
 					JSONArray args = event.getJSONArray("args");
 					argsArray = new Object[args.length()];
@@ -656,14 +684,8 @@ class IOConnection {
 			}
 			break;
 		case IOMessage.TYPE_ERROR:
-			if (message.getEndpoint().equals(""))
-				for (SocketIO socket : sockets.values()) {
-					socket.getCallback().onError(
-							new SocketIOException(message.getData()));
-				}
-			else
-				findCallback(message).onError(
-						new SocketIOException(message.getData()));
+			findCallback(message).onError(
+					new SocketIOException(message.getData()));
 			if (message.getData().endsWith("+0")) {
 				// We are advised to disconnect
 				cleanup();
@@ -704,9 +726,12 @@ class IOConnection {
 	 * @return the iO callback
 	 */
 	private IOCallback findCallback(IOMessage message) {
+		if("".equals(message.getEndpoint()))
+			return this;
 		SocketIO socket = sockets.get(message.getEndpoint());
 		if (socket == null) {
-			logger.warning("Cannot find socket for '" + message.getEndpoint() + "'");
+			logger.warning("Cannot find socket for '" + message.getEndpoint()
+					+ "'");
 			return DUMMY_CALLBACK;
 		}
 		return socket.getCallback();
@@ -826,22 +851,22 @@ class IOConnection {
 		public void onDisconnect() {
 			logger.info("Disconnect");
 		}
-	
+
 		@Override
 		public void onConnect() {
 			logger.info("Connect");
 		}
-	
+
 		@Override
 		public void onMessage(String data, IOAcknowledge ack) {
 			logger.info("Message:\n" + data + "\n-------------");
 		}
-	
+
 		@Override
 		public void onMessage(JSONObject json, IOAcknowledge ack) {
 			logger.info("Message:\n" + json.toString() + "\n-------------");
 		}
-	
+
 		@Override
 		public void on(String event, IOAcknowledge ack, Object... args) {
 			logger.info("Event '" + event + "':\n");
@@ -849,12 +874,52 @@ class IOConnection {
 				logger.info(arg.toString());
 			logger.info("\n-------------");
 		}
-	
+
 		@Override
 		public void onError(SocketIOException socketIOException) {
 			logger.info("Error");
 			throw new RuntimeException(socketIOException);
 		}
-	
+
 	};
+
+	private static final Object[] empty = new Object[0];
+
+	@Override
+	public void onDisconnect() {
+		SocketIO socket = sockets.get("");
+		if(socket != null)
+			socket.getCallback().onConnect();
+	}
+
+	@Override
+	public void onConnect() {
+		SocketIO socket = sockets.get("");
+		if(socket != null)
+			socket.getCallback().onConnect();
+	}
+
+	@Override
+	public void onMessage(String data, IOAcknowledge ack) {
+		for(SocketIO socket : sockets.values())
+			socket.getCallback().onMessage(data, ack);
+	}
+
+	@Override
+	public void onMessage(JSONObject json, IOAcknowledge ack) {
+		for(SocketIO socket : sockets.values())
+			socket.getCallback().onMessage(json, ack);
+	}
+
+	@Override
+	public void on(String event, IOAcknowledge ack, Object... args) {
+		for(SocketIO socket : sockets.values())
+			socket.getCallback().on(event, ack, args);
+	}
+
+	@Override
+	public void onError(SocketIOException socketIOException) {
+		for(SocketIO socket : sockets.values())
+			socket.getCallback().onError(socketIOException);
+	}
 }

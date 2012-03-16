@@ -11,7 +11,7 @@ stdin.on('data', function(chunk) {
 
 io.set('transports', [ process.argv[3] ]);
 
-var main = io.sockets.on('connection', function(socket) {
+var main = io.of("/main").on('connection', function(socket) {
 	socket.on('echo', function(data) {
 		if(data)
 			socket.emit('echo', data);
@@ -36,6 +36,9 @@ var main = io.sockets.on('connection', function(socket) {
 	socket.on('message', function(m) {
 		process.stdout.write("__:MESSAGE:" + m + "\n");
 	});
+	socket.on('defaultns', function(m) {
+		io.sockets.send(m);
+	})
 });
 
 var ns1 = io.of('/ns1').on('connection', function(socket) {

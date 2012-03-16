@@ -190,7 +190,7 @@ public abstract class AbstractTestSocketIO implements IOCallback {
 	 */
 	void doConnect() throws Exception {
 		// Setting up socket connection
-		socket = new SocketIO("http://127.0.0.1:" + getProxyPort(), this);
+		socket = new SocketIO("http://127.0.0.1:" + getProxyPort() + "/main", this);
 		assertEquals("onConnect", takeEvent());
 		assertEquals(transport, socket.getTransport());
 	}
@@ -295,22 +295,21 @@ public abstract class AbstractTestSocketIO implements IOCallback {
 				this);
 		assertEquals("onConnect", takeEvent());
 
-		// In some very rare cases, it is possible to receive data on an socket
-		// which isn't connected yet, this sleep assures that these events
-		// aren't submitted. This is a server side problem. Maybe socket.io-java
-		// could cache these events until the server drops the connect event.
-		Thread.sleep(200);
 		doConnect();
-
 		ns1.disconnect();
 		assertEquals("onDisconnect", takeEvent());
 
 		SocketIO ns2 = new SocketIO("http://127.0.0.1:" + getProxyPort() + "/ns2",
 				this);
 		assertEquals("onConnect", takeEvent());
-
 		assertEquals("onMessage_string", takeEvent());
 		assertEquals("ns2", takeArg());
+
+		socket.emit("defaultns", "TESTSTRING");
+		assertEquals("onMessage_string", takeEvent());
+		assertEquals("TESTSTRING", takeArg());
+		assertEquals("onMessage_string", takeEvent());
+		assertEquals("TESTSTRING", takeArg());
 
 		SocketIO ns2_2 = new SocketIO("http://127.0.0.1:" + getProxyPort() + "/ns2",
 				this);
@@ -433,6 +432,7 @@ public abstract class AbstractTestSocketIO implements IOCallback {
 	 */
 	@Override
 	public void onConnect() {
+		System.out.println("onConnect");
 		events.add("onConnect");
 	}
 
