@@ -20,32 +20,6 @@ Features:
 
 __Status:__ Connecting with Websocket is production ready. XHR is not usable at the moment but I'm working on it.
 
-### Checkout
-
- * with git
- 
-		git clone git://github.com/Gottox/socket.io-java-client.git
-
- * with mercurial
- 
- 		hg clone https://bitbucket.org/Gottox/socket.io-java-client 
- 
-Both repositories are synchronized and up to date.
-
-### Building
-
-to build a jar-file:
-
-	cd $PATH_TO_SOCKETIO_JAVA
-	ant jar
-	ls jar/socketio.jar
-
-You'll find the socket.io-jar in jar/socketio.jar 
-
-### Bugs
-
-Please report any bugs feature requests to [the Github issue tracker](https://github.com/Gottox/socket.io-java-client/issues)
-
 ## How to use
 
 Using socket.io-java-client is quite simple. But lets see:
@@ -99,6 +73,32 @@ For further informations, read the [Javadoc](http://s01.de/~tox/hgexport/socket.
 
  * [Class SocketIO](http://s01.de/~tox/hgexport/socket.io-java-client/io/socket/SocketIO.html)
  * [Interface IOCallback](http://s01.de/~tox/hgexport/socket.io-java-client/io/socket/IOCallback.html)
+ 
+## Checkout
+
+ * with git
+ 
+		git clone git://github.com/Gottox/socket.io-java-client.git
+
+ * with mercurial
+ 
+ 		hg clone https://bitbucket.org/Gottox/socket.io-java-client 
+ 
+Both repositories are synchronized and up to date.
+
+### Building
+
+to build a jar-file:
+
+	cd $PATH_TO_SOCKETIO_JAVA
+	ant jar
+	ls jar/socketio.jar
+
+You'll find the socket.io-jar in jar/socketio.jar 
+
+### Bugs
+
+Please report any bugs feature requests to [the Github issue tracker](https://github.com/Gottox/socket.io-java-client/issues)
 
 ## Frameworks
 
@@ -129,3 +129,7 @@ You need node installed in PATH.
 ## License - the boring stuff...
 
 This library is distributed under MIT Licence.
+
+## Sounds so interesting...
+
+You'll find further documentation at the [Socket.io-java-client Github Wiki](https://github.com/Gottox/socket.io-java-client/wiki)
