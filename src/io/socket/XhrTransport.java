@@ -88,9 +88,9 @@ class XhrTransport implements IOTransport {
 						} else {
 							Iterator<String> iter = queue.iterator();
 							while (iter.hasNext()) {
-								line = iter.next() + "\n";
-								line = IOConnection.FRAME_DELIMITER + line.length()
-										+ IOConnection.FRAME_DELIMITER;
+								String junk = iter.next();
+								line = IOConnection.FRAME_DELIMITER + junk.length()
+										+ IOConnection.FRAME_DELIMITER + junk;
 								output.write(line.getBytes(CHARSET));
 								iter.remove();
 							}
