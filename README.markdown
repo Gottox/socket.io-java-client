@@ -18,7 +18,7 @@ Features:
  * __output buffer__ - send data while the transport is still connecting. No problem, socket.io-java-client handles that.
  * __meaningful exceptions__ - If something goes wrong, SocketIO tries to throw meaningful exceptions with hints for fixing.
 
-__Status:__ Connecting with Websocket is production ready. XHR is not usable at the moment but I'm working on it.
+__Status:__ Connecting with Websocket is production ready. XHR is in beta.
 
 ## How to use
 
