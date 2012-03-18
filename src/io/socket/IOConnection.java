@@ -96,9 +96,6 @@ class IOConnection implements IOCallback {
 	/** Custom Request headers used while handshaking */
 	private Properties headers;
 
-	/** Input buffer used for framing */
-	private final StringBuilder inputBuffer = new StringBuilder();
-
 	/**
 	 * The first socket to be connected. the socket.io server does not send a
 	 * connected response to this one.
