@@ -47,8 +47,10 @@ var ns1 = io.of('/ns1').on('connection', function(socket) {
 });
 
 var ns2 = io.of('/ns2').on('connection', function(socket) {
-	main.send("ns2");
-	ns1.send("ns2");
+	setTimeout(function() {
+		main.send("ns2");
+		ns1.send("ns2");
+	}, 200);
 });
 
 process.stdout.write("__:OK\n");
