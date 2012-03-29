@@ -195,39 +195,6 @@ class IOConnection implements IOCallback {
 			connectTransport();
 		}
 
-		/**
-		 * Handshake.
-		 * 
-		 */
-		private void handshake() {
-			URL url;
-			String response;
-			URLConnection connection;
-			try {
-				setState(STATE_HANDSHAKE);
-				url = new URL(IOConnection.this.url.toString() + SOCKET_IO_1);
-				connection = url.openConnection();
-				connection.setConnectTimeout(connectTimeout);
-				connection.setReadTimeout(connectTimeout);
-
-				/* Setting the request headers */
-				for (Entry<Object, Object> entry : headers.entrySet()) {
-					connection.setRequestProperty((String) entry.getKey(),
-							(String) entry.getValue());
-				}
-
-				InputStream stream = connection.getInputStream();
-				Scanner in = new Scanner(stream);
-				response = in.nextLine();
-				String[] data = response.split(":");
-				sessionId = data[0];
-				heartbeatTimeout = Long.parseLong(data[1]) * 1000;
-				closingTimeout = Long.parseLong(data[2]) * 1000;
-				protocols = Arrays.asList(data[3].split(","));
-			} catch (Exception e) {
-				error(new SocketIOException("Error while handshaking", e));
-			}
-		}
 
 	};
 
@@ -255,6 +222,77 @@ class IOConnection implements IOCallback {
 		IOConnection connection = new IOConnection(origin, socket);
 		list.add(connection);
 		return connection;
+	}
+
+	/**
+	 * Connects a socket to the IOConnection.
+	 * 
+	 * @param socket
+	 *            the socket to be connected
+	 * @return true, if successfully registered on this transport, otherwise
+	 *         false.
+	 */
+	public boolean register(SocketIO socket) {
+		String namespace = socket.getNamespace();
+		if (sockets.containsKey(namespace))
+			return false;
+		sockets.put(namespace, socket);
+		socket.setHeaders(headers);
+		IOMessage connect = new IOMessage(IOMessage.TYPE_CONNECT,
+				socket.getNamespace(), "");
+		sendPlain(connect.toString());
+		return true;
+	}
+
+	/**
+	 * Disconnect a socket from the IOConnection. Shuts down this IOConnection
+	 * if no further connections are available for this IOConnection.
+	 * 
+	 * @param socket
+	 *            the socket to be shut down
+	 */
+	public void unregister(SocketIO socket) {
+		sendPlain("0::" + socket.getNamespace());
+		sockets.remove(socket.getNamespace());
+		socket.getCallback().onDisconnect();
+	
+		if (sockets.size() == 0) {
+			cleanup();
+		}
+	}
+
+	/**
+	 * Handshake.
+	 * 
+	 */
+	private void handshake() {
+		URL url;
+		String response;
+		URLConnection connection;
+		try {
+			setState(STATE_HANDSHAKE);
+			url = new URL(IOConnection.this.url.toString() + SOCKET_IO_1);
+			connection = url.openConnection();
+			connection.setConnectTimeout(connectTimeout);
+			connection.setReadTimeout(connectTimeout);
+	
+			/* Setting the request headers */
+			for (Entry<Object, Object> entry : headers.entrySet()) {
+				connection.setRequestProperty((String) entry.getKey(),
+						(String) entry.getValue());
+			}
+	
+			InputStream stream = connection.getInputStream();
+			Scanner in = new Scanner(stream);
+			response = in.nextLine();
+			String[] data = response.split(":");
+			sessionId = data[0];
+			heartbeatTimeout = Long.parseLong(data[1]) * 1000;
+			closingTimeout = Long.parseLong(data[2]) * 1000;
+			protocols = Arrays.asList(data[3].split(","));
+		} catch (Exception e) {
+			error(new SocketIOException("Error while handshaking", e));
+		}
 	}
 
 	/**
@@ -351,39 +389,6 @@ class IOConnection implements IOCallback {
 	}
 
 	/**
-	 * Populates an error to the connected {@link IOCallback}s and shuts down.
-	 * 
-	 * @param e
-	 *            an exception
-	 */
-	protected void error(SocketIOException e) {
-		for (SocketIO socket : sockets.values()) {
-			socket.getCallback().onError(e);
-		}
-		cleanup();
-	}
-
-	/**
-	 * Connects a socket to the IOConnection.
-	 * 
-	 * @param socket
-	 *            the socket to be connected
-	 * @return true, if successfully registered on this transport, otherwise
-	 *         false.
-	 */
-	public boolean register(SocketIO socket) {
-		String namespace = socket.getNamespace();
-		if (sockets.containsKey(namespace))
-			return false;
-		sockets.put(namespace, socket);
-		socket.setHeaders(headers);
-		IOMessage connect = new IOMessage(IOMessage.TYPE_CONNECT,
-				socket.getNamespace(), "");
-		sendPlain(connect.toString());
-		return true;
-	}
-
-	/**
 	 * Cleanup. IOConnection is not usable after this calling this.
 	 */
 	private void cleanup() {
@@ -403,20 +408,16 @@ class IOConnection implements IOCallback {
 	}
 
 	/**
-	 * Disconnect a socket from the IOConnection. Shuts down this IOConnection
-	 * if no further connections are available for this IOConnection.
+	 * Populates an error to the connected {@link IOCallback}s and shuts down.
 	 * 
-	 * @param socket
-	 *            the socket to be shut down
+	 * @param e
+	 *            an exception
 	 */
-	public void unregister(SocketIO socket) {
-		sendPlain("0::" + socket.getNamespace());
-		sockets.remove(socket.getNamespace());
-		socket.getCallback().onDisconnect();
-
-		if (sockets.size() == 0) {
-			cleanup();
+	private void error(SocketIOException e) {
+		for (SocketIO socket : sockets.values()) {
+			socket.getCallback().onError(e);
 		}
+		cleanup();
 	}
 
 	/**
@@ -460,6 +461,26 @@ class IOConnection implements IOCallback {
 		heartbeatTimeoutTask = new HearbeatTimeoutTask();
 		backgroundTimer.schedule(heartbeatTimeoutTask, closingTimeout
 				+ heartbeatTimeout);
+	}
+
+	/**
+	 * finds the corresponding callback object to an incoming message. Returns a
+	 * dummy callback if no corresponding callback can be found
+	 * 
+	 * @param message
+	 *            the message
+	 * @return the iO callback
+	 * @throws SocketIOException 
+	 */
+	private IOCallback findCallback(IOMessage message) throws SocketIOException {
+		if("".equals(message.getEndpoint()))
+			return this;
+		SocketIO socket = sockets.get(message.getEndpoint());
+		if (socket == null) {
+			throw new SocketIOException("Cannot find socket for '" + message.getEndpoint()
+					+ "'");
+		}
+		return socket.getCallback();
 	}
 
 	/**
@@ -632,7 +653,7 @@ class IOConnection implements IOCallback {
 		case IOMessage.TYPE_EVENT:
 			try {
 				JSONObject event = new JSONObject(message.getData());
-				Object[] argsArray = empty;
+				Object[] argsArray;
 				if (event.has("args")) {
 					JSONArray args = event.getJSONArray("args");
 					argsArray = new Object[args.length()];
@@ -641,6 +662,8 @@ class IOConnection implements IOCallback {
 							argsArray[i] = args.get(i);
 					}
 				}
+				else
+					argsArray = new Object[0];
 				String eventName = event.getString("name");
 				try {
 					findCallback(message).on(eventName,
@@ -681,8 +704,12 @@ class IOConnection implements IOCallback {
 			}
 			break;
 		case IOMessage.TYPE_ERROR:
-			findCallback(message).onError(
-					new SocketIOException(message.getData()));
+			try {
+				findCallback(message).onError(
+						new SocketIOException(message.getData()));
+			} catch (SocketIOException e) {
+				error(e);
+			}
 			if (message.getData().endsWith("+0")) {
 				// We are advised to disconnect
 				cleanup();
@@ -712,26 +739,6 @@ class IOConnection implements IOCallback {
 				backgroundTimer.schedule(reconnectTask, 1000);
 			}
 		}
-	}
-
-	/**
-	 * finds the corresponding callback object to an incoming message. Returns a
-	 * dummy callback if no corresponding callback can be found
-	 * 
-	 * @param message
-	 *            the message
-	 * @return the iO callback
-	 */
-	private IOCallback findCallback(IOMessage message) {
-		if("".equals(message.getEndpoint()))
-			return this;
-		SocketIO socket = sockets.get(message.getEndpoint());
-		if (socket == null) {
-			logger.warning("Cannot find socket for '" + message.getEndpoint()
-					+ "'");
-			return DUMMY_CALLBACK;
-		}
-		return socket.getCallback();
 	}
 
 	/**
@@ -841,46 +848,6 @@ class IOConnection implements IOCallback {
 	public IOTransport getTransport() {
 		return transport;
 	}
-
-	/** A dummy callback used when IOConnection receives a unexpected message. */
-	final static public IOCallback DUMMY_CALLBACK = new IOCallback() {
-		@Override
-		public void onDisconnect() {
-			logger.info("Disconnect");
-		}
-
-		@Override
-		public void onConnect() {
-			logger.info("Connect");
-		}
-
-		@Override
-		public void onMessage(String data, IOAcknowledge ack) {
-			logger.info("Message:\n" + data + "\n-------------");
-		}
-
-		@Override
-		public void onMessage(JSONObject json, IOAcknowledge ack) {
-			logger.info("Message:\n" + json.toString() + "\n-------------");
-		}
-
-		@Override
-		public void on(String event, IOAcknowledge ack, Object... args) {
-			logger.info("Event '" + event + "':\n");
-			for (Object arg : args)
-				logger.info(arg.toString());
-			logger.info("\n-------------");
-		}
-
-		@Override
-		public void onError(SocketIOException socketIOException) {
-			logger.info("Error");
-			throw new RuntimeException(socketIOException);
-		}
-
-	};
-
-	private static final Object[] empty = new Object[0];
 
 	@Override
 	public void onDisconnect() {
