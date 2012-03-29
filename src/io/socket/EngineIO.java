@@ -1,5 +1,5 @@
 /*
- * socket.io-java-client IOConnection.java
+ * socket.io-java-client EngineIO.java
  *
  * Copyright (c) 2012, Enno Boland
  * socket.io-java-client is a implementation of the socket.io protocol in Java.
@@ -31,7 +31,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 /**
- * The Class IOConnection.
+ * The Class EngineIO.
  */
 class EngineIO implements IOCallback {
 	/** Debug logger */
@@ -110,7 +110,7 @@ class EngineIO implements IOCallback {
 
 	/**
 	 * The last occurred exception, which will be given to the user if
-	 * IOConnection gives up.
+	 * EngineIO gives up.
 	 */
 	private Exception lastException;
 
@@ -130,7 +130,7 @@ class EngineIO implements IOCallback {
 	private HearbeatTimeoutTask heartbeatTimeoutTask;
 
 	/**
-	 * The Class HearbeatTimeoutTask. Handles dropping this IOConnection if no
+	 * The Class HearbeatTimeoutTask. Handles dropping this EngineIO if no
 	 * heartbeat is received within life time.
 	 */
 	private class HearbeatTimeoutTask extends TimerTask {
@@ -205,7 +205,7 @@ class EngineIO implements IOCallback {
 	 *            the origin
 	 * @param socket
 	 *            the socket
-	 * @return a IOConnection object
+	 * @return a EngineIO object
 	 */
 	static public EngineIO register(String origin, SocketIO socket) {
 		List<EngineIO> list = connections.get(origin);
@@ -225,7 +225,7 @@ class EngineIO implements IOCallback {
 	}
 
 	/**
-	 * Connects a socket to the IOConnection.
+	 * Connects a socket to the EngineIO.
 	 * 
 	 * @param socket
 	 *            the socket to be connected
@@ -245,8 +245,8 @@ class EngineIO implements IOCallback {
 	}
 
 	/**
-	 * Disconnect a socket from the IOConnection. Shuts down this IOConnection
-	 * if no further connections are available for this IOConnection.
+	 * Disconnect a socket from EngineIO. Shuts down this EngineIO
+	 * if no further connections are available for this EngineIO.
 	 * 
 	 * @param socket
 	 *            the socket to be shut down
@@ -368,7 +368,7 @@ class EngineIO implements IOCallback {
 	}
 
 	/**
-	 * Instantiates a new IOConnection.
+	 * Instantiates a new EngineIO.
 	 * 
 	 * @param url
 	 *            the URL
@@ -389,7 +389,7 @@ class EngineIO implements IOCallback {
 	}
 
 	/**
-	 * Cleanup. IOConnection is not usable after this calling this.
+	 * Cleanup. EngineIO is not usable after this calling this.
 	 */
 	private void cleanup() {
 		setState(STATE_INVALID);
@@ -813,7 +813,7 @@ class EngineIO implements IOCallback {
 	}
 
 	/**
-	 * Checks if IOConnection is currently connected.
+	 * Checks if EngineIO is currently connected.
 	 * 
 	 * @return true, if is connected
 	 */
@@ -822,7 +822,7 @@ class EngineIO implements IOCallback {
 	}
 
 	/**
-	 * Gets the current state of this IOConnection.
+	 * Gets the current state of this EngineIO.
 	 * 
 	 * @return current state
 	 */
@@ -831,7 +831,7 @@ class EngineIO implements IOCallback {
 	}
 
 	/**
-	 * Sets the current state of this IOConnection.
+	 * Sets the current state of this EngineIO.
 	 * 
 	 * @param state
 	 *            the new state

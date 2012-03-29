@@ -1,1 +1,4 @@
+basic
+chat
 io.socket
+io.socket.testutils

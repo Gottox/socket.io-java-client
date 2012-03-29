@@ -32,7 +32,7 @@ class WebsocketTransport implements IOTransport, WebSocketEventHandler {
 	/** The String to identify this Transport */
 	public static final String TRANSPORT_NAME = "websocket";
 	
-	/** The IOConnection of this transport. */
+	/** The EngineIO of this transport. */
 	private EngineIO connection;
 	
 	/**
