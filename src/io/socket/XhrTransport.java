@@ -29,7 +29,7 @@ class XhrTransport implements IOTransport {
 	public static final String TRANSPORT_NAME = "xhr-polling";
 
 	/** The connection. */
-	private IOConnection connection;
+	private EngineIO connection;
 
 	/** The url. */
 	private URL url;
@@ -40,7 +40,7 @@ class XhrTransport implements IOTransport {
 	/** background thread for managing the server connection. */
 	PollThread pollThread = null;
 
-	/** Indicates whether the {@link IOConnection} wants us to be connected. */
+	/** Indicates whether the {@link EngineIO} wants us to be connected. */
 	private boolean connect;
 
 	/** Indicates whether {@link PollThread} is blocked. */
@@ -86,8 +86,8 @@ class XhrTransport implements IOTransport {
 							Iterator<String> iter = queue.iterator();
 							while (iter.hasNext()) {
 								String junk = iter.next();
-								line = IOConnection.FRAME_DELIMITER + junk.length()
-										+ IOConnection.FRAME_DELIMITER + junk;
+								line = EngineIO.FRAME_DELIMITER + junk.length()
+										+ EngineIO.FRAME_DELIMITER + junk;
 								output.write(line.getBytes(CHARSET));
 								iter.remove();
 							}
@@ -126,7 +126,7 @@ class XhrTransport implements IOTransport {
 	}
 
 	/**
-	 * Creates a new Transport for the given url an {@link IOConnection}.
+	 * Creates a new Transport for the given url an {@link EngineIO}.
 	 * 
 	 * @param url
 	 *            the url
@@ -134,9 +134,9 @@ class XhrTransport implements IOTransport {
 	 *            the connection
 	 * @return the iO transport
 	 */
-	public static IOTransport create(URL url, IOConnection connection) {
+	public static IOTransport create(URL url, EngineIO connection) {
 		try {
-			URL xhrUrl = new URL(url.toString() + IOConnection.SOCKET_IO_1
+			URL xhrUrl = new URL(url.toString() + EngineIO.SOCKET_IO_1
 					+ TRANSPORT_NAME + "/" + connection.getSessionId());
 			return new XhrTransport(xhrUrl, connection);
 		} catch (MalformedURLException e) {
@@ -155,7 +155,7 @@ class XhrTransport implements IOTransport {
 	 * @param connection
 	 *            the connection
 	 */
-	public XhrTransport(URL url, IOConnection connection) {
+	public XhrTransport(URL url, EngineIO connection) {
 		this.connection = connection;
 		this.url = url;
 	}

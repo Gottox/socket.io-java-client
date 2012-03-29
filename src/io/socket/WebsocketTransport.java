@@ -33,19 +33,19 @@ class WebsocketTransport implements IOTransport, WebSocketEventHandler {
 	public static final String TRANSPORT_NAME = "websocket";
 	
 	/** The IOConnection of this transport. */
-	private IOConnection connection;
+	private EngineIO connection;
 	
 	/**
-	 * Creates a new Transport for the given url an {@link IOConnection}.
+	 * Creates a new Transport for the given url an {@link EngineIO}.
 	 *
 	 * @param url the url
 	 * @param connection the connection
 	 * @return the iO transport
 	 */
-	public static IOTransport create(URL url, IOConnection connection) {
+	public static IOTransport create(URL url, EngineIO connection) {
 		URI uri = URI.create(
 				PATTERN_HTTP.matcher(url.toString()).replaceFirst("ws")
-				+ IOConnection.SOCKET_IO_1 + TRANSPORT_NAME
+				+ EngineIO.SOCKET_IO_1 + TRANSPORT_NAME
 				+ "/" + connection.getSessionId());
 
 		return new WebsocketTransport(uri, connection);
@@ -58,7 +58,7 @@ class WebsocketTransport implements IOTransport, WebSocketEventHandler {
 	 * @param connection the connection
 	 * @throws WebSocketException 
 	 */
-	public WebsocketTransport(URI uri, IOConnection connection) {
+	public WebsocketTransport(URI uri, EngineIO connection) {
 		try {
 			websocket = new WebSocketConnection(uri);
 		} catch (WebSocketException e) {
