@@ -57,7 +57,7 @@ interface IOTransport {
 	/**
 	 * Instructs the IOTransport to invalidate. DO NOT DISCONNECT from the
 	 * server. just make sure, that events are not populated to the
-	 * {@link EngineIO}
+	 * {@link IOConnection}
 	 */
 	void invalidate();
 	

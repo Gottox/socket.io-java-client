@@ -23,7 +23,7 @@ public class SocketIO {
 	private IOCallback callback;
 
 	/** connection of this Socket. */
-	private EngineIO connection;
+	private IOConnection connection;
 
 	/** namespace. */
 	private String namespace;
@@ -204,7 +204,7 @@ public class SocketIO {
 			if (this.namespace.equals("/")) {
 				this.namespace = "";
 			}
-			this.connection = EngineIO.register(origin, this);
+			this.connection = IOConnection.register(origin, this);
 			return true;
 		}
 		return false;
