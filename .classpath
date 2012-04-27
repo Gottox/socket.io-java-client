@@ -4,12 +4,12 @@
 	<classpathentry kind="src" path="examples"/>
 	<classpathentry kind="src" path="tests"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.6"/>
-	<classpathentry kind="lib" path="lib/json-org.jar">
+	<classpathentry exported="true" kind="lib" path="lib/json-org.jar">
 		<attributes>
 			<attribute name="javadoc_location" value="http://www.json.org/javadoc/"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="lib" path="lib/weberknecht-0.1.1.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
+	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/weberknecht"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
