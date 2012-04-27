@@ -12,6 +12,8 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Properties;
 
+import javax.net.ssl.SSLSocketFactory;
+
 import org.json.JSONObject;
 
 /**
@@ -120,7 +122,15 @@ public class SocketIO {
 	public SocketIO(final URL url) {
 		setAndConnect(url, null);
 	}
-
+	
+	/**
+	 * Set the socket factory used for SSL connections.
+	 * @param socketFactory
+	 */
+	public static void setDefaultSSLSocketFactory(SSLSocketFactory socketFactory) {
+		IOConnection.setDefaultSSLSocketFactory(socketFactory);
+	}
+	
 	/**
 	 * connects to supplied host using callback. Do only use this method if you
 	 * instantiate {@link SocketIO} using {@link #SocketIO()}.

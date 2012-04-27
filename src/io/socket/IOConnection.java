@@ -26,6 +26,9 @@ import java.util.TimerTask;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.logging.Logger;
 
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLSocketFactory;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -63,6 +66,9 @@ class IOConnection implements IOCallback {
 	/** Socket.io path. */
 	public static final String SOCKET_IO_1 = "/socket.io/1/";
 
+	/** The SSL socket factory for HTTPS connections */
+	private static SSLSocketFactory sslSocketFactory = (SSLSocketFactory)SSLSocketFactory.getDefault();
+	
 	/** All available connections. */
 	private static HashMap<String, List<IOConnection>> connections = new HashMap<String, List<IOConnection>>();
 
@@ -199,6 +205,14 @@ class IOConnection implements IOCallback {
 	};
 
 	/**
+	 * Set the socket factory used for SSL connections.
+	 * @param socketFactory
+	 */
+	public static void setDefaultSSLSocketFactory(SSLSocketFactory socketFactory) {
+		sslSocketFactory = socketFactory;
+	}
+	
+	/**
 	 * Creates a new connection or returns the corresponding one.
 	 * 
 	 * @param origin
@@ -273,6 +287,9 @@ class IOConnection implements IOCallback {
 			setState(STATE_HANDSHAKE);
 			url = new URL(IOConnection.this.url.toString() + SOCKET_IO_1);
 			connection = url.openConnection();
+			if(connection instanceof HttpsURLConnection) {
+				((HttpsURLConnection)connection).setSSLSocketFactory(sslSocketFactory);
+			}
 			connection.setConnectTimeout(connectTimeout);
 			connection.setReadTimeout(connectTimeout);
 	
