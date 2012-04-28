@@ -177,6 +177,23 @@ class IOConnection implements IOCallback {
 			}
 		}
 	}
+	
+	private IOReconnectScheduler reconnectScheduler = new IOReconnectScheduler() {
+
+		@Override
+		public void scheduleReconnect(Timer timer, TimerTask task) {
+			timer.schedule(task, 1000);
+		}
+
+		@Override
+		public void onReconnect() {
+		}
+		
+	};
+	
+	public void setReconnectScheduler(IOReconnectScheduler scheduler) {
+		reconnectScheduler = scheduler;
+	}
 
 	/**
 	 * The Class ConnectThread. Handles connecting to the server with an
@@ -507,7 +524,9 @@ class IOConnection implements IOCallback {
 	 */
 	public void transportConnected() {
 		setState(STATE_READY);
-		if (reconnectTask != null) {
+		
+		boolean isReconnecting = (reconnectTask != null);
+		if (isReconnecting) {
 			reconnectTask.cancel();
 			reconnectTask = null;
 		}
@@ -535,7 +554,11 @@ class IOConnection implements IOCallback {
 				while ((text = outputBuffer.poll()) != null)
 					sendPlain(text);
 			}
+			
 			this.keepAliveInQueue = false;
+			if(isReconnecting) {
+				reconnectScheduler.onReconnect();
+			}
 		}
 	}
 
@@ -753,7 +776,7 @@ class IOConnection implements IOCallback {
 					reconnectTask.cancel();
 				}
 				reconnectTask = new ReconnectTask();
-				backgroundTimer.schedule(reconnectTask, 1000);
+				reconnectScheduler.scheduleReconnect(backgroundTimer, reconnectTask);
 			}
 		}
 	}
