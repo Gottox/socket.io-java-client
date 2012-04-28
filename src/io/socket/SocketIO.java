@@ -331,6 +331,14 @@ public class SocketIO {
 	}
 
 	/**
+	 * Set the reconnect scheduler. By default reconnects are attempted every
+	 * second.
+	 */
+	public void setReconnectScheduler(IOReconnectScheduler scheduler) {
+		this.connection.setReconnectScheduler(scheduler);
+	}
+	
+	/**
 	 * Returns, if a connection is established at the moment
 	 * 
 	 * @return true if a connection is established, false if the transport is
