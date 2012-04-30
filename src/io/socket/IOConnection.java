@@ -432,7 +432,7 @@ class IOConnection implements IOCallback {
 		sockets.clear();
 		synchronized (connections) {
 			List<IOConnection> con = connections.get(urlStr);
-			if (con.size() > 1)
+			if (con != null && con.size() > 1)
 				con.remove(this);
 			else
 				connections.remove(urlStr);
