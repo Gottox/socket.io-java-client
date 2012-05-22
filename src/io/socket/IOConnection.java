@@ -148,7 +148,7 @@ class IOConnection implements IOCallback {
 		 */
 		@Override
 		public void run() {
-			setState(STATE_INVALID);
+			cleanup();
 			error(new SocketIOException(
 					"Timeout Error. No heartbeat from server within life time of the socket. closing.",
 					lastException));
@@ -246,7 +246,7 @@ class IOConnection implements IOCallback {
 	 * @return true, if successfully registered on this transport, otherwise
 	 *         false.
 	 */
-	public boolean register(SocketIO socket) {
+	public synchronized boolean register(SocketIO socket) {
 		String namespace = socket.getNamespace();
 		if (sockets.containsKey(namespace))
 			return false;
@@ -265,7 +265,7 @@ class IOConnection implements IOCallback {
 	 * @param socket
 	 *            the socket to be shut down
 	 */
-	public void unregister(SocketIO socket) {
+	public synchronized void unregister(SocketIO socket) {
 		sendPlain("0::" + socket.getNamespace());
 		sockets.remove(socket.getNamespace());
 		socket.getCallback().onDisconnect();
@@ -316,7 +316,7 @@ class IOConnection implements IOCallback {
 	/**
 	 * Connect transport.
 	 */
-	private void connectTransport() {
+	private synchronized void connectTransport() {
 		if (getState() == STATE_INVALID)
 			return;
 		setState(STATE_CONNECTING);
@@ -409,7 +409,7 @@ class IOConnection implements IOCallback {
 	/**
 	 * Cleanup. IOConnection is not usable after this calling this.
 	 */
-	private void cleanup() {
+	private synchronized void cleanup() {
 		setState(STATE_INVALID);
 		if (transport != null)
 			transport.disconnect();
@@ -747,17 +747,15 @@ class IOConnection implements IOCallback {
 	 * forces a reconnect. This had become useful on some android devices which
 	 * do not shut down TCP-connections when switching from HSDPA to Wifi
 	 */
-	public void reconnect() {
-		synchronized (this) {
-			if (getState() != STATE_INVALID) {
-				invalidateTransport();
-				setState(STATE_INTERRUPTED);
-				if (reconnectTask != null) {
-					reconnectTask.cancel();
-				}
-				reconnectTask = new ReconnectTask();
-				backgroundTimer.schedule(reconnectTask, 1000);
+	public synchronized void reconnect() {
+		if (getState() != STATE_INVALID) {
+			invalidateTransport();
+			setState(STATE_INTERRUPTED);
+			if (reconnectTask != null) {
+				reconnectTask.cancel();
 			}
+			reconnectTask = new ReconnectTask();
+			backgroundTimer.schedule(reconnectTask, 1000);
 		}
 	}
 
