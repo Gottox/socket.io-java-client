@@ -198,6 +198,8 @@ public class SocketIO {
 	 * @return true if connecting has been initiated, false if not
 	 */
 	private boolean setAndConnect(URL url, IOCallback callback) {
+		if(this.connection != null)
+			throw new RuntimeException("You can connect your SocketIO instance only once. Use a fresh instance instead.");
 		if ((this.url != null && url != null)
 				|| (this.callback != null && callback != null))
 			return false;
