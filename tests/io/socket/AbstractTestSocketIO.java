@@ -98,7 +98,7 @@ public abstract class AbstractTestSocketIO implements IOCallback {
 		node = Runtime.getRuntime().exec(
 				new String[] { NODE, "./tests/io/socket/testutils/socketio.js",
 						"" + getPort(), transport });
-		proxy = new MutateProxy(getPort()+1, getPort());
+		proxy = new MutateProxy(getPort() + 1, getPort());
 		proxy.start();
 
 		stdoutThread = new Thread("stdoutThread") {
@@ -190,7 +190,8 @@ public abstract class AbstractTestSocketIO implements IOCallback {
 	 */
 	void doConnect() throws Exception {
 		// Setting up socket connection
-		socket = new SocketIO("http://127.0.0.1:" + getProxyPort() + "/main", this);
+		socket = new SocketIO("http://127.0.0.1:" + getProxyPort() + "/main",
+				this);
 		assertEquals("onConnect", takeEvent());
 		assertEquals(transport, socket.getTransport());
 	}
@@ -245,12 +246,12 @@ public abstract class AbstractTestSocketIO implements IOCallback {
 
 		socket.emit("echo");
 		assertEquals("Test String", "on", takeEvent());
-		
+
 		String str = "TESTSTRING";
 		socket.emit("echo", str);
 		assertEquals("Test String", "on", takeEvent());
 		assertEquals(str, takeArg());
-		
+
 		JSONObject obj = new JSONObject("{'foo':'bar'}");
 		socket.emit("echo", obj);
 		assertEquals("Test JSON", "on", takeEvent());
@@ -291,16 +292,16 @@ public abstract class AbstractTestSocketIO implements IOCallback {
 	 */
 	@Test(timeout = TIMEOUT)
 	public void namespaces() throws Exception {
-		SocketIO ns1 = new SocketIO("http://127.0.0.1:" + getProxyPort() + "/ns1",
-				this);
+		SocketIO ns1 = new SocketIO("http://127.0.0.1:" + getProxyPort()
+				+ "/ns1", this);
 		assertEquals("onConnect", takeEvent());
 
 		doConnect();
 		ns1.disconnect();
 		assertEquals("onDisconnect", takeEvent());
 
-		SocketIO ns2 = new SocketIO("http://127.0.0.1:" + getProxyPort() + "/ns2",
-				this);
+		SocketIO ns2 = new SocketIO("http://127.0.0.1:" + getProxyPort()
+				+ "/ns2", this);
 		assertEquals("onConnect", takeEvent());
 		assertEquals("onMessage_string", takeEvent());
 		assertEquals("ns2", takeArg());
@@ -311,8 +312,8 @@ public abstract class AbstractTestSocketIO implements IOCallback {
 		assertEquals("onMessage_string", takeEvent());
 		assertEquals("TESTSTRING", takeArg());
 
-		SocketIO ns2_2 = new SocketIO("http://127.0.0.1:" + getProxyPort() + "/ns2",
-				this);
+		SocketIO ns2_2 = new SocketIO("http://127.0.0.1:" + getProxyPort()
+				+ "/ns2", this);
 		assertEquals("onConnect", takeEvent());
 
 		assertEquals("onMessage_string", takeEvent());
@@ -357,12 +358,23 @@ public abstract class AbstractTestSocketIO implements IOCallback {
 		}, "TESTSTRING");
 		assertEquals("ack", takeEvent());
 		assertEquals("TESTSTRING", takeArg());
-		
+
 		socket.emit(REQUEST_ACKNOWLEDGE, "TESTSTRING");
 		assertEquals("on", takeEvent());
 		assertEquals("TESTSTRING", takeArg());
 		assertEquals("ACKNOWLEDGE:TESTSTRING", takeLine());
 		doClose();
+	}
+
+	@Test(timeout = TIMEOUT)
+	public void reconnectInvalidated() throws Exception {
+		doConnect();
+		socket.disconnect();
+		try {
+			socket.connect(this);
+			fail("reconnecting an invalidated socket should fail");
+		} catch (RuntimeException ex) {
+		}
 	}
 
 	// END TESTS
@@ -470,7 +482,7 @@ public abstract class AbstractTestSocketIO implements IOCallback {
 	@Override
 	public void on(String event, IOAcknowledge ack, Object... args) {
 		events.add("on");
-		if(event.equals(REQUEST_ACKNOWLEDGE)) {
+		if (event.equals(REQUEST_ACKNOWLEDGE)) {
 			ack.ack(args);
 		}
 		this.args.addAll(Arrays.asList(args));
@@ -497,7 +509,7 @@ public abstract class AbstractTestSocketIO implements IOCallback {
 			port = 2048 + (int) (Math.random() * 10000) * 2;
 		return port;
 	}
-	
+
 	public int getProxyPort() {
 		return getPort() + (proxy == null ? 0 : 1);
 	}
