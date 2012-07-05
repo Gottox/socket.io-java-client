@@ -7,8 +7,6 @@
 <project basedir="." default="build" name="socket.io-java-client">
     <property environment="env"/>
     <property name="ECLIPSE_HOME" value="../../../../../Applications/eclipse"/>
-    <property name="treckme.location" value="../treckme"/>
-    <property name="treckme_android.location" value="../treckme_android"/>
     <property name="junit.output.dir" value="junit"/>
     <property name="debuglevel" value="source,lines,vars"/>
     <property name="target" value="1.6"/>
@@ -19,24 +17,14 @@
     </path>
     <path id="socket.io-java-client.classpath">
         <pathelement location="bin"/>
-        <path refid="JUnit 4.libraryclasspath"/>
-        <pathelement location="libs/weberknecht-0.1.1.jar"/>
         <pathelement location="libs/json-org.jar"/>
+        <pathelement location="libs/weberknecht-0.1.1.jar"/>
+        <path refid="JUnit 4.libraryclasspath"/>
     </path>
     <target name="init">
         <mkdir dir="bin"/>
         <copy includeemptydirs="false" todir="bin">
             <fileset dir="src">
-                <exclude name="**/*.java"/>
-            </fileset>
-        </copy>
-        <copy includeemptydirs="false" todir="bin">
-            <fileset dir="examples">
-                <exclude name="**/*.java"/>
-            </fileset>
-        </copy>
-        <copy includeemptydirs="false" todir="bin">
-            <fileset dir="tests">
                 <exclude name="**/*.java"/>
             </fileset>
         </copy>
@@ -53,29 +41,8 @@
             <src path="src"/>
             <classpath refid="socket.io-java-client.classpath"/>
         </javac>
-        <javac debug="true" debuglevel="${debuglevel}" destdir="bin" source="${source}" target="${target}">
-            <src path="examples"/>
-            <classpath refid="socket.io-java-client.classpath"/>
-        </javac>
-        <javac debug="true" debuglevel="${debuglevel}" destdir="bin" source="${source}" target="${target}">
-            <src path="tests"/>
-            <classpath refid="socket.io-java-client.classpath"/>
-        </javac>
     </target>
-    <target description="Build all projects which reference this project. Useful to propagate changes." name="build-refprojects">
-        <ant antfile="build.xml" dir="${treckme.location}" inheritAll="false" target="clean"/>
-        <ant antfile="build.xml" dir="${treckme.location}" inheritAll="false" target="build">
-            <propertyset>
-                <propertyref name="build.compiler"/>
-            </propertyset>
-        </ant>
-        <ant antfile="build.xml" dir="${treckme_android.location}" inheritAll="false" target="clean"/>
-        <ant antfile="build.xml" dir="${treckme_android.location}" inheritAll="false" target="build">
-            <propertyset>
-                <propertyref name="build.compiler"/>
-            </propertyset>
-        </ant>
-    </target>
+    <target description="Build all projects which reference this project. Useful to propagate changes." name="build-refprojects"/>
     <target description="copy Eclipse compiler jars to ant lib directory" name="init-eclipse-compiler">
         <copy todir="${ant.library.dir}">
             <fileset dir="${ECLIPSE_HOME}/plugins" includes="org.eclipse.jdt.core_*.jar"/>
@@ -99,12 +66,7 @@
         </junit>
     </target>
     <target name="BasicExample">
-        <java classname="basic.BasicExample" failonerror="true" fork="yes">
-            <classpath refid="socket.io-java-client.classpath"/>
-        </java>
-    </target>
-    <target name="ChatFrame">
-        <java classname="chat.ChatFrame" failonerror="true" fork="yes">
+        <java classname="BasicExample" failonerror="true" fork="yes">
             <classpath refid="socket.io-java-client.classpath"/>
         </java>
     </target>
@@ -132,4 +94,12 @@
             <report format="frames" todir="${junit.output.dir}"/>
         </junitreport>
     </target>
+	<target name="jar" depends="build-project">
+	        <mkdir dir="jar"/>
+	        <jar destfile="jar/socketio.jar" basedir="bin">
+		    <zipgroupfileset dir="libs/" includes="*.jar"/>
+	            <manifest>
+	            </manifest>
+	        </jar>
+	</target>
 </project>
