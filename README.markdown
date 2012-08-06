@@ -20,9 +20,23 @@ Features:
 
 __Status:__ Connecting with Websocket is production ready. XHR is in beta.
 
+
 ## How to use
 
 Using socket.io-java-client is quite simple. But lets see:
+
+Checkout and compile the project:
+
+``` bash
+git clone git://github.com/Gottox/socket.io-java-client.git
+cd socket.io-java-client
+ant jar
+mv jar/socketio.jar /path/to/your/libs/project
+```
+
+If you're using ant, change your build.xml to include socketio.jar. If you're eclipse, add the jar to your project buildpath.
+
+Afterwards, you'll be able to use this library: 
 
 ``` java
 
