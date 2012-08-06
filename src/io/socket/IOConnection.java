@@ -226,9 +226,11 @@ class IOConnection implements IOCallback {
 			list = new LinkedList<IOConnection>();
 			connections.put(origin, list);
 		} else {
-			for (IOConnection connection : list) {
-				if (connection.register(socket))
-					return connection;
+			synchronized (list) {
+				for (IOConnection connection : list) {
+					if (connection.register(socket))
+						return connection;
+				}
 			}
 		}
 
