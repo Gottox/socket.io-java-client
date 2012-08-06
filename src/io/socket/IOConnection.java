@@ -443,19 +443,17 @@ class IOConnection implements IOCallback {
 	 * @param text
 	 *            the Text to be send.
 	 */
-	private void sendPlain(String text) {
-		synchronized (outputBuffer) {
-			if (getState() == STATE_READY)
-				try {
-					logger.info("> " + text);
-					transport.send(text);
-				} catch (Exception e) {
-					logger.info("IOEx: saving");
-					outputBuffer.add(text);
-				}
-			else {
+	private synchronized void sendPlain(String text) {
+		if (getState() == STATE_READY)
+			try {
+				logger.info("> " + text);
+				transport.send(text);
+			} catch (Exception e) {
+				logger.info("IOEx: saving");
 				outputBuffer.add(text);
 			}
+		else {
+			outputBuffer.add(text);
 		}
 	}
 
@@ -505,38 +503,36 @@ class IOConnection implements IOCallback {
 	 * 
 	 * {@link IOTransport} calls this when a connection is established.
 	 */
-	public void transportConnected() {
+	public synchronized void transportConnected() {
 		setState(STATE_READY);
 		if (reconnectTask != null) {
 			reconnectTask.cancel();
 			reconnectTask = null;
 		}
 		resetTimeout();
-		synchronized (outputBuffer) {
-			if (transport.canSendBulk()) {
-				ConcurrentLinkedQueue<String> outputBuffer = this.outputBuffer;
-				this.outputBuffer = new ConcurrentLinkedQueue<String>();
-				try {
-					// DEBUG
-					String[] texts = outputBuffer
-							.toArray(new String[outputBuffer.size()]);
-					logger.info("Bulk start:");
-					for (String text : texts) {
-						logger.info("> " + text);
-					}
-					logger.info("Bulk end");
-					// DEBUG END
-					transport.sendBulk(texts);
-				} catch (IOException e) {
-					this.outputBuffer = outputBuffer;
+		if (transport.canSendBulk()) {
+			ConcurrentLinkedQueue<String> outputBuffer = this.outputBuffer;
+			this.outputBuffer = new ConcurrentLinkedQueue<String>();
+			try {
+				// DEBUG
+				String[] texts = outputBuffer.toArray(new String[outputBuffer
+						.size()]);
+				logger.info("Bulk start:");
+				for (String text : texts) {
+					logger.info("> " + text);
 				}
-			} else {
-				String text;
-				while ((text = outputBuffer.poll()) != null)
-					sendPlain(text);
+				logger.info("Bulk end");
+				// DEBUG END
+				transport.sendBulk(texts);
+			} catch (IOException e) {
+				this.outputBuffer = outputBuffer;
 			}
-			this.keepAliveInQueue = false;
+		} else {
+			String text;
+			while ((text = outputBuffer.poll()) != null)
+				sendPlain(text);
 		}
+		this.keepAliveInQueue = false;
 	}
 
 	/**
