@@ -471,13 +471,15 @@ class IOConnection implements IOCallback {
 	/**
 	 * Reset timeout.
 	 */
-	private void resetTimeout() {
+	private synchronized void resetTimeout() {
 		if (heartbeatTimeoutTask != null) {
 			heartbeatTimeoutTask.cancel();
 		}
-		heartbeatTimeoutTask = new HearbeatTimeoutTask();
-		backgroundTimer.schedule(heartbeatTimeoutTask, closingTimeout
-				+ heartbeatTimeout);
+		if(getState() != STATE_INVALID) {
+			heartbeatTimeoutTask = new HearbeatTimeoutTask();
+			backgroundTimer.schedule(heartbeatTimeoutTask, closingTimeout
+					+ heartbeatTimeout);
+		}
 	}
 
 	/**
