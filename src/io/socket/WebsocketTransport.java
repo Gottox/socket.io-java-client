@@ -9,15 +9,15 @@
 package io.socket;
 
 
-import java.io.IOException;
-import java.net.URI;
-import java.net.URL;
-import java.util.regex.Pattern;
-
 import de.roderick.weberknecht.WebSocketConnection;
 import de.roderick.weberknecht.WebSocketEventHandler;
 import de.roderick.weberknecht.WebSocketException;
 import de.roderick.weberknecht.WebSocketMessage;
+
+import java.io.IOException;
+import java.net.URI;
+import java.net.URL;
+import java.util.regex.Pattern;
 
 /**
  * The Class WebsocketTransport.
