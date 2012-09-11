@@ -18,7 +18,7 @@
     <path id="socket.io-java-client.classpath">
         <pathelement location="bin"/>
         <pathelement location="libs/json-org.jar"/>
-        <pathelement location="libs/weberknecht-0.1.1.jar"/>
+        <pathelement location="libs/WebSocket.jar"/>
         <path refid="JUnit 4.libraryclasspath"/>
     </path>
     <target name="init">
