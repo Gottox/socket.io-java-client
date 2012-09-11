@@ -36,7 +36,7 @@ public abstract class AbstractTestSocketIO implements IOCallback {
 	private static final String REQUEST_ACKNOWLEDGE = "requestAcknowledge";
 
 	/** The Constant to the node executable */
-	private final static String NODE = "node";
+	private final static String NODE = "/usr/local/bin/node";
 
 	/** The port of this test, randomly choosed */
 	private int port = -1;

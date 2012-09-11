@@ -20,6 +20,9 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
+
 /**
  * The Class XhrTransport.
  */
@@ -76,6 +79,10 @@ class XhrTransport implements IOTransport {
 					URL url = new URL(XhrTransport.this.url.toString() + "?t="
 							+ System.currentTimeMillis());
 					urlConnection = (HttpURLConnection) url.openConnection();
+					SSLContext context = IOConnection.getSslContext();
+					if(urlConnection instanceof HttpsURLConnection && context != null) {
+						((HttpsURLConnection)urlConnection).setSSLSocketFactory(context.getSocketFactory());
+					}
 					if (!queue.isEmpty()) {
 						urlConnection.setDoOutput(true);
 						OutputStream output = urlConnection.getOutputStream();

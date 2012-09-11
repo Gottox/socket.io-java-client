@@ -12,6 +12,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Properties;
 
+import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocketFactory;
 
 import org.json.JSONObject;
@@ -127,8 +128,8 @@ public class SocketIO {
 	 * Set the socket factory used for SSL connections.
 	 * @param socketFactory
 	 */
-	public static void setDefaultSSLSocketFactory(SSLSocketFactory socketFactory) {
-		IOConnection.setDefaultSSLSocketFactory(socketFactory);
+	public static void setDefaultSSLSocketFactory(SSLContext sslContext) {
+		IOConnection.setSslContext(sslContext);
 	}
 	
 	/**
