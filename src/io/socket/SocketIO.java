@@ -340,7 +340,7 @@ public class SocketIO {
 	 *         not connected or currently connecting
 	 */
 	public boolean isConnected() {
-		return this.connection.isConnected();
+		return this.connection != null && this.connection.isConnected();
 	}
 	
 	/**
