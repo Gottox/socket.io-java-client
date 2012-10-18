@@ -83,10 +83,10 @@ Afterwards, you'll be able to use this library:
 
 ```
 
-For further informations, read the [Javadoc](http://s01.de/~tox/hgexport/socket.io-java-client/).
+For further informations, read the [Javadoc](http://s01.de/hgexport/socket.io-java-client/).
 
- * [Class SocketIO](http://s01.de/~tox/hgexport/socket.io-java-client/io/socket/SocketIO.html)
- * [Interface IOCallback](http://s01.de/~tox/hgexport/socket.io-java-client/io/socket/IOCallback.html)
+ * [Class SocketIO](http://s01.de/~tox/socket.io-java-client/io/socket/SocketIO.html)
+ * [Interface IOCallback](http://s01.de/~tox/socket.io-java-client/io/socket/IOCallback.html)
  
 ## Checkout
 
