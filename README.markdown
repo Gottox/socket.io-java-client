@@ -121,7 +121,7 @@ This Library was designed with portability in mind.
 * __Android__ is fully supported.
 * __JRE__ is fully supported.
 * __GWT__ does not work at the moment, but a port would be possible.
-* __JavaME__ untested.
+* __Java ME__ does not work at the moment, but a port would be possible.
 * ... is there anything else out there?
 
 ## Testing
