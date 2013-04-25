@@ -1,7 +1,7 @@
 /*
  * socket.io-java-client IOMessage.java
  *
- * Copyright (c) 2012, Enno Boland
+ * Copyright (c) 2013 Kyje
  * socket.io-java-client is a implementation of the socket.io protocol in Java.
  * 
  * See LICENSE file for more information
@@ -10,6 +10,8 @@ package io.socket;
 
 /**
  * The Class IOMessage.
+ * Message format is:
+ * [message type] ':' [message id ('+')] ':' [message endpoint] (':' [message data]) 
  */
 class IOMessage {
 
@@ -55,11 +57,10 @@ class IOMessage {
 	/** Number of fields in a message. */
 	public static final int NUM_FIELDS = 4;
 
-	/** The field values */
-	private final String[] fields = new String[NUM_FIELDS];
-
-	/** Type */
-	private int type;
+	private final int type;
+	private String id;
+	private String endpoint;
+	private String data;
 	
 	/**
 	 * Instantiates a new IOMessage by given data.
@@ -73,12 +74,11 @@ class IOMessage {
 	 * @param data
 	 *            the data
 	 */
-	public IOMessage(int type, String id, String namespace, String data) {
+	public IOMessage(int type, String id, String endpoint, String data) {
 		this.type = type;
-		this.fields[FIELD_ID] = id;
-		this.fields[FIELD_TYPE] = "" + type;
-		this.fields[FIELD_ENDPOINT] = namespace;
-		this.fields[FIELD_DATA] = data;
+		this.id = id;
+		this.endpoint = endpoint;
+		this.data = data;
 	}
 
 	/**
@@ -104,11 +104,14 @@ class IOMessage {
 	 */
 	public IOMessage(String message) {
 		String[] fields = message.split(":", NUM_FIELDS);
-		for (int i = 0; i < fields.length; i++) {
-			this.fields[i] = fields[i];
-			if(i == FIELD_TYPE)
-				this.type = Integer.parseInt(fields[i]);
-		}
+		type = Integer.parseInt(fields[FIELD_TYPE]);
+		int length = fields.length - 1;
+		if(length >= FIELD_ID)
+			id = fields[FIELD_ID];
+		if(length >= FIELD_ENDPOINT)
+			endpoint = fields[FIELD_ENDPOINT];
+		if(length >= FIELD_DATA)
+			data = fields[FIELD_DATA];
 	}
 
 	/**
@@ -117,12 +120,18 @@ class IOMessage {
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
-		for(int i = 0; i < fields.length; i++) {
+		builder.append(type).append(':');
+		if(id != null)
+			builder.append(id);
+		builder.append(':');
+		if(endpoint != null)
+			builder.append(endpoint);
+		if(data != null && !data.isEmpty())
+		{
 			builder.append(':');
-			if (fields[i] != null)
-				builder.append(fields[i]);
-		}
-		return builder.substring(1);
+			builder.append(data);
+		}		
+		return builder.toString();
 	}
 
 	/**
@@ -140,7 +149,7 @@ class IOMessage {
 	 * @return the id
 	 */
 	public String getId() {
-		return fields[FIELD_ID];
+		return id;
 	}
 
 	/**
@@ -149,7 +158,7 @@ class IOMessage {
 	 * @param id
 	 */
 	public void setId(String id) {
-		fields[FIELD_ID] = id;
+		this.id = id;
 	}
 
 	/**
@@ -158,7 +167,7 @@ class IOMessage {
 	 * @return the endpoint
 	 */
 	public String getEndpoint() {
-		return fields[FIELD_ENDPOINT];
+		return endpoint;
 	}
 
 	/**
@@ -167,7 +176,7 @@ class IOMessage {
 	 * @return the data
 	 */
 	public String getData() {
-		return fields[FIELD_DATA];
+		return data;
 	}
 
 }
