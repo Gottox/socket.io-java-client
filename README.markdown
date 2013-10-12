@@ -4,7 +4,7 @@
 
 socket.io-java-client is an easy to use implementation of [socket.io](http://socket.io) for Java.
 
-It uses [Weberknecht](http://code.google.com/p/weberknecht/) as transport backend, but it's easy
+It uses [Weberknecht](https://github.com/pelotoncycle/weberknecht/) as transport backend, but it's easy
 to write your own transport. See description below. An XHR-Transport is included, too. But it's
 not functional in its current state.
 
