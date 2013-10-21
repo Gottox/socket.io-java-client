@@ -6,9 +6,11 @@ import java.net.URL;
 import java.util.regex.Pattern;
 
 import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 
-import org.java_websocket.client.DefaultSSLWebSocketClientFactory;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
 
@@ -25,12 +27,29 @@ class WebsocketTransport extends WebSocketClient implements IOTransport {
         return new WebsocketTransport(uri, connection);
     }
 
-    public WebsocketTransport(URI uri, IOConnection connection) {
+	public WebsocketTransport(URI uri, IOConnection connection) {
         super(uri);
         this.connection = connection;
-        SSLContext context = IOConnection.getSslContext();
-        if("wss".equals(uri.getScheme()) && context != null) {
-	        this.setWebSocketFactory(new DefaultSSLWebSocketClientFactory(context));
+        try {
+			X509TrustManager tm = new X509TrustManager() {
+	            public void checkClientTrusted(X509Certificate[] xcs, String string) throws CertificateException {
+	            }
+
+	            public void checkServerTrusted(X509Certificate[] xcs, String string) throws CertificateException {
+	            }
+
+	            public X509Certificate[] getAcceptedIssuers() {
+	                return null;
+	            }
+	        };
+	        SSLContext ctx = SSLContext.getInstance("TLS");
+            ctx.init(null, new TrustManager[]{tm}, null);
+			
+	        if(("wss".equals(uri.getScheme()) || ("https".equals(uri.getScheme()))) && ctx != null) {
+                this.setSocket(ctx.getSocketFactory().createSocket());
+	        }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
