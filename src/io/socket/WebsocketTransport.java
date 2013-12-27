@@ -3,6 +3,7 @@ package io.socket;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URL;
+import java.util.Map;
 import java.util.regex.Pattern;
 
 import javax.net.ssl.SSLContext;
@@ -10,23 +11,25 @@ import javax.net.ssl.SSLSocketFactory;
 
 import org.java_websocket.client.DefaultSSLWebSocketClientFactory;
 import org.java_websocket.client.WebSocketClient;
+import org.java_websocket.drafts.Draft;
+import org.java_websocket.drafts.Draft_17;
 import org.java_websocket.handshake.ServerHandshake;
 
 class WebsocketTransport extends WebSocketClient implements IOTransport {
     private final static Pattern PATTERN_HTTP = Pattern.compile("^http");
     public static final String TRANSPORT_NAME = "websocket";
     private IOConnection connection;
-    public static IOTransport create(URL url, IOConnection connection) {
+    public static IOTransport create(URL url, IOConnection connection, Map<String,String> httpHeaders) {
         URI uri = URI.create(
                 PATTERN_HTTP.matcher(url.toString()).replaceFirst("ws")
                 + IOConnection.SOCKET_IO_1 + TRANSPORT_NAME
                 + "/" + connection.getSessionId());
 
-        return new WebsocketTransport(uri, connection);
+        return new WebsocketTransport(uri, connection, httpHeaders);
     }
 
-    public WebsocketTransport(URI uri, IOConnection connection) {
-        super(uri);
+    public WebsocketTransport(URI uri, IOConnection connection, Map<String,String> httpHeaders) {
+        super(uri, new Draft_17(), httpHeaders, 0);
         this.connection = connection;
         SSLContext context = IOConnection.getSslContext();
         if("wss".equals(uri.getScheme()) && context != null) {
