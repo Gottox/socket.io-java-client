@@ -18,6 +18,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Scanner;
@@ -25,6 +26,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.logging.Logger;
+
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocketFactory;
@@ -102,6 +104,9 @@ class IOConnection implements IOCallback {
 	/** Custom Request headers used while handshaking */
 	private Properties headers;
 
+	/** Custom Request headers used while connecting to the websocket */
+	private Map<String, String> websocketHeaders;
+	
 	/**
 	 * The first socket to be connected. the socket.io server does not send a
 	 * connected response to this one.
@@ -331,7 +336,7 @@ class IOConnection implements IOCallback {
 			return;
 		setState(STATE_CONNECTING);
 		if (protocols.contains(WebsocketTransport.TRANSPORT_NAME))
-			transport = WebsocketTransport.create(url, this);
+			transport = WebsocketTransport.create(url, this, websocketHeaders);
 		else if (protocols.contains(XhrTransport.TRANSPORT_NAME))
 			transport = XhrTransport.create(url, this);
 		else {
@@ -412,6 +417,7 @@ class IOConnection implements IOCallback {
 		}
 		firstSocket = socket;
 		headers = socket.getHeaders();
+		websocketHeaders = socket.getWebsocketHeaders();
 		sockets.put(socket.getNamespace(), socket);
 		new ConnectThread().start();
 	}
@@ -589,7 +595,7 @@ class IOConnection implements IOCallback {
 				.listIterator(1);
 		while (fragments.hasNext()) {
 			int length = Integer.parseInt(fragments.next());
-			String string = (String) fragments.next();
+			String string = fragments.next();
 			// Potential BUG: it is not defined if length is in bytes or
 			// characters. Assuming characters.
 

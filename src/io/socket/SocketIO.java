@@ -10,6 +10,8 @@ package io.socket;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 
 import javax.net.ssl.SSLContext;
@@ -34,6 +36,9 @@ public class SocketIO {
 	/** Used for setting header during handshaking. */
 	private Properties headers = new Properties();
 
+	/** Used for setting header during connecting. */
+	private Map<String, String> websocketHeaders = new HashMap<String, String>();
+	
 	private URL url;
 
 	/**
@@ -392,6 +397,20 @@ public class SocketIO {
 	}
 
 	/**
+	 * Adds an header for connecting
+	 * @return SocketIO.this for daisy chaining.
+	 */
+	public SocketIO addWebsocketHeader(String key, String value) {
+		if (this.connection != null)
+			throw new RuntimeException(
+					"You may only set headers before connecting.\n"
+							+ " Try to use new SocketIO().addHeader(key, value).connect(host, callback) "
+							+ "instead of SocketIO(host, callback).addHeader(key, value)");
+		this.websocketHeaders.put(key, value);
+		return this;
+	}
+	
+	/**
 	 * Returns the header value
 	 * 
 	 * @return the header value or {@code null} if not present
@@ -400,5 +419,14 @@ public class SocketIO {
 		if (this.headers.contains(key))
 			return this.headers.getProperty(key);
 		return null;
+	}
+
+	/**
+	 * Returns the headers used while connecting.
+	 * 
+	 * @return the headers used while connecting
+	 */
+	public Map<String, String> getWebsocketHeaders() {
+		return websocketHeaders;
 	}
 }
