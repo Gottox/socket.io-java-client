@@ -397,7 +397,7 @@ public class SocketIO {
 	 * @return the header value or {@code null} if not present
 	 */
 	public String getHeader(String key) {
-		if (this.headers.contains(key))
+		if (headers != null)
 			return this.headers.getProperty(key);
 		return null;
 	}
