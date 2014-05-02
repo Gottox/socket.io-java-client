@@ -16,6 +16,7 @@ class WebsocketTransport extends WebSocketClient implements IOTransport {
     private final static Pattern PATTERN_HTTP = Pattern.compile("^http");
     public static final String TRANSPORT_NAME = "websocket";
     private IOConnection connection;
+    private static  ExecutorService exec1;
     public static IOTransport create(URL url, IOConnection connection) {
         URI uri = URI.create(
                 PATTERN_HTTP.matcher(url.toString()).replaceFirst("ws")
@@ -30,7 +31,11 @@ class WebsocketTransport extends WebSocketClient implements IOTransport {
         this.connection = connection;
         SSLContext context = IOConnection.getSslContext();
         if("wss".equals(uri.getScheme()) && context != null) {
-	        this.setWebSocketFactory(new DefaultSSLWebSocketClientFactory(context));
+	        if(exec1!=null){
+        		exec1=  Executors.newSingleThreadScheduledExecutor();
+        	}
+	        this.setWebSocketFactory(new DefaultSSLWebSocketClientFactory(context,exec1));
+
         }
     }
 
