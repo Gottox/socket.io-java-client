@@ -8,19 +8,33 @@
  */
 package io.socket;
 
+import java.util.Arrays;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import io.socket.IOConnection.VersionSocketIO;
+
 /**
  * The Class IOMessage.
  */
 class IOMessage {
 
+	/** Message type Unknown*/
+	public static final int TYPE_UNKNOWN= -1;
+	
 	/** Message type disconnect */
 	public static final int TYPE_DISCONNECT = 0;
 
 	/** Message type connect */
 	public static final int TYPE_CONNECT = 1;
 
-	/** Message type heartbeat */
+	/** Message type heartbeat/ping */
 	public static final int TYPE_HEARTBEAT = 2;
+	
+	/** Message type pong */
+	public static final int TYPE_PONG = 9;
 
 	/** Message type message */
 	public static final int TYPE_MESSAGE = 3;
@@ -39,6 +53,15 @@ class IOMessage {
 
 	/** Message type noop */
 	public static final int TYPE_NOOP = 8;
+	
+	/** Message type Binary Event */
+	public static final int TYPE_BINARY_EVENT= 9;
+	
+	/** Message type Binary ACK*/
+	public static final int TYPE_BINARY_ACK = 10;
+	
+	/** Message type Upgrade required */
+	public static final int TYPE_UPGRADE = 11;
 
 	/** Index of the type field in a message */
 	public static final int FIELD_TYPE = 0;
@@ -61,6 +84,8 @@ class IOMessage {
 	/** Type */
 	private int type;
 	
+	private IOConnection.VersionSocketIO version;
+	
 	/**
 	 * Instantiates a new IOMessage by given data.
 	 * 
@@ -73,7 +98,9 @@ class IOMessage {
 	 * @param data
 	 *            the data
 	 */
-	public IOMessage(int type, String id, String namespace, String data) {
+	public IOMessage(int type, String id, String namespace, String data,IOConnection.VersionSocketIO version)
+	{
+		this.version = version;
 		this.type = type;
 		this.fields[FIELD_ID] = id;
 		this.fields[FIELD_TYPE] = "" + type;
@@ -91,8 +118,9 @@ class IOMessage {
 	 * @param data
 	 *            the data
 	 */
-	public IOMessage(int type, String namespace, String data) {
-		this(type, null, namespace, data);
+	public IOMessage(int type, String namespace, String data,IOConnection.VersionSocketIO version)
+	{
+		this(type, null, namespace, data,version);
 	}
 
 	/**
@@ -101,27 +129,217 @@ class IOMessage {
 	 * 
 	 * @param message
 	 *            the message
+	 * @param version
+	 *            The parsing for a socket io 0.9.x and 1.0.x are different
 	 */
-	public IOMessage(String message) {
-		String[] fields = message.split(":", NUM_FIELDS);
-		for (int i = 0; i < fields.length; i++) {
-			this.fields[i] = fields[i];
-			if(i == FIELD_TYPE)
-				this.type = Integer.parseInt(fields[i]);
+	public IOMessage(String message,IOConnection.VersionSocketIO version)
+	{
+		this.version = version;
+		switch (this.version)
+		{
+			case V09x:
+				String[] fields = message.split(":", NUM_FIELDS);
+				for (int i = 0; i < fields.length; i++) {
+					this.fields[i] = fields[i];
+					if(i == FIELD_TYPE)
+						this.type = Integer.parseInt(fields[i]);
+				}
+				break;
+			case V10x:
+			{
+				//42["message","{\"type\":\"redirect\",\"url\":\"/logout\",\"rid\":\"test\",\"info\":\"Internal error: could not get csInfo.\",\"action\":\"reject\"}"]
+				int control = message.charAt(0) - '0';
+				String data = message.substring(1);
+				String endpoint = "";
+				
+				this.fields[FIELD_ID] = "";				
+				switch (control)
+				{
+					case 0:
+						this.type = TYPE_UNKNOWN;
+						break;
+					case 1:
+						this.type = TYPE_UNKNOWN;
+						break;
+					case 2:
+						this.type = TYPE_HEARTBEAT;
+						this.setData(data);
+						break;
+					case 3:
+						this.type = TYPE_PONG;
+						this.setData(data);
+						break;
+					case 4:
+					{
+						control = data.charAt(0) - '0';						
+						data = data.substring(1);
+						int iendpoint = data.indexOf('[');
+						if(iendpoint != -1)
+							endpoint = data.substring(0,iendpoint);
+						switch (control)
+						{
+							case 0:
+								this.type = TYPE_CONNECT;								
+								break;
+							case 1:
+								this.type = TYPE_DISCONNECT;
+								break;
+							case 2:
+							{
+								//event
+								//5:::
+								//message
+								// ["message","{\"type\":\"message sendWith backslash\"}"]
+//								System.out.println("To Parse: "+data);
+//								int extraQuote = data.lastIndexOf("}\"");
+//								if(extraQuote != -1)
+//								{									
+//									StringBuilder b = new StringBuilder(data);
+//									b.replace(extraQuote,extraQuote+2, "}" );
+//									data = b.toString();
+//									data = data.replace("\"{", "{");
+////									data = data.replaceAll("}\"", "}");
+//								}
+								//
+								while(data.indexOf("}\",\"{") != -1)
+									data = data.replace("}\",\"{", "},{");
+								data = data.replace(",\"{", ",{");
+								data = data.replace("}\"]", "}]");								
+								// ["message",{\"type\":\"message sendWith backslash\"}]
+								data = data.replaceAll("\\\\\\\\\\\\\"", "\"");
+								data = data.replaceAll("\\\\\"", "\"");
+								// ["message",{"type":"message sendWith backslash"}]
+//								System.out.println("To Parse: "+data);
+								try 
+								{									
+									JSONArray datain = null;
+									datain = new JSONArray(data);
+									String event = datain.getString(0);
+									String dataout = "";
+									StringBuilder builder = new StringBuilder();
+									for(int i = 1; i < datain.length(); i++)
+									{
+										builder.append(',');
+										if (datain.isNull(i) == false)
+											builder.append(datain.getString(i));
+									}
+									dataout = builder.substring(1);
+//									System.out.println("Event: "+event);
+//									System.out.println("Data Out: "+dataout);
+									if("message".equals(event))
+									{
+										this.type = TYPE_JSON_MESSAGE;
+										this.setData(dataout);
+									}
+									else
+									{
+										this.type = TYPE_EVENT;
+										JSONObject jdataout = new JSONObject()
+											.put("name",event)
+											.put("args",new JSONArray("["+dataout+"]"));
+										this.setData(jdataout.toString());
+									}
+																		
+								}catch (JSONException e) 
+								{
+									System.err.println("Malformed Message received");
+								}
+							}	break;
+							case 3:
+								this.type = TYPE_ACK;
+								break;
+							case 4:
+								this.type = TYPE_ERROR;
+								break;
+							case 5:
+								this.type = TYPE_BINARY_EVENT;
+								
+								break;
+							case 6:
+								this.type = TYPE_BINARY_ACK;
+								break;	
+							default:
+								this.type = TYPE_UNKNOWN;
+								break;
+						}
+					}	break;
+					case 5:
+						this.type = TYPE_UPGRADE;						
+						break;
+					case 6:
+						this.type = TYPE_NOOP;
+						break;	
+					default:
+						this.type = TYPE_UNKNOWN;
+						break;
+				}
+				this.setEndpoint(endpoint);
+			}	break;
 		}
+		
+		
 	}
 
 	/**
 	 * Generates a String representation of this object.
 	 */
 	@Override
-	public String toString() {
+	public String toString()
+	{
 		StringBuilder builder = new StringBuilder();
-		for(int i = 0; i < fields.length; i++) {
-			builder.append(':');
-			if (fields[i] != null)
-				builder.append(fields[i]);
+		switch (version)
+		{		
+			case V09x:
+			{				
+				for(int i = 0; i < fields.length; i++)
+				{
+					builder.append(':');
+					if (fields[i] != null)
+						builder.append(fields[i]);
+				}
+			}	break;
+			case V10x:
+			{
+				//"42<endpoint>["message","<s>"]
+				builder.append(":42");
+				builder.append(fields[FIELD_ENDPOINT]);
+				
+				switch (Integer.parseInt(fields[FIELD_TYPE]))
+				{
+				case TYPE_MESSAGE:
+				case TYPE_JSON_MESSAGE:
+					builder.append("[\"message\",\"");
+					builder.append(fields[FIELD_DATA]);
+					builder.append("\"]");
+					break;
+				case TYPE_EVENT:
+					try 
+					{
+						JSONObject event = new JSONObject(this.getData());
+						String eventName = event.getString("name");
+						JSONArray dataOut = new JSONArray();
+						dataOut.put(0, eventName);
+						if (event.has("args"))
+						{
+							JSONArray args = event.getJSONArray("args");
+							for (int i = 0; i < args.length(); i++)
+							{
+								if (args.isNull(i) == false)
+									dataOut.put(i+1,args.get(i));
+							}
+						}
+						builder.append(dataOut.toString());
+						
+					} catch (JSONException e) {
+						System.err.println("Malformated JSON To Send");
+					}	
+				default:
+					break;
+				}
+								
+			}	break;
 		}
+		
 		return builder.substring(1);
 	}
 
@@ -153,6 +371,15 @@ class IOMessage {
 	}
 
 	/**
+	 * Sets the endpoint of this IOMessage.
+	 * 
+	 * @param the endpoint
+	 */
+	private void setEndpoint(String endPoint) {
+		fields[FIELD_ENDPOINT] = endPoint;
+	}
+	
+	/**
 	 * Returns the endpoint of this IOMessage.
 	 * 
 	 * @return the endpoint
@@ -161,6 +388,15 @@ class IOMessage {
 		return fields[FIELD_ENDPOINT];
 	}
 
+	/**
+	 * Returns the data of this IOMessage.
+	 * 
+	 * @param the data
+	 */
+	private void setData(String data) {
+		fields[FIELD_DATA] = data;
+	}
+	
 	/**
 	 * Returns the data of this IOMessage.
 	 * 
