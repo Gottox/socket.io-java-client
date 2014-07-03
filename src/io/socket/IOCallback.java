@@ -12,6 +12,7 @@ import org.json.JSONObject;
 
 /**
  * The Interface IOCallback. A callback interface to SocketIO
+ * WARNING: Do NOT use "Thread.sleep" in the callback methods
  */
 public interface IOCallback {
 	

@@ -72,7 +72,7 @@ class IOMessage
 	protected JSONArray args = new JSONArray();
 	protected String data;
 	
-	private String separator = ":";
+	protected String separator = ":";
 	
 	
 	/** Type */
@@ -106,9 +106,9 @@ class IOMessage
 //		args.put(data);
 //	}
 	
-	private static final Map<Integer, IOMessage.TypeMessage> messages_codes = createMapMessages();
+	protected final Map<Integer, IOMessage.TypeMessage> messages_codes = this.createMapMessages();
 
-	private static final Map<Integer, IOMessage.TypeMessage> createMapMessages() 
+	protected Map<Integer, IOMessage.TypeMessage> createMapMessages() 
     {
 		Map<Integer, IOMessage.TypeMessage> result= new HashMap<Integer, IOMessage.TypeMessage>() ;
 		result.put(0, IOMessage.TypeMessage.TYPE_DISCONNECT);
@@ -156,7 +156,7 @@ class IOMessage
 	
 	protected int getControlNumber(TypeMessage type)
 	{
-		for (Entry<Integer, TypeMessage> entry : messages_codes.entrySet()) 
+		for (Entry<Integer, TypeMessage> entry : this.messages_codes.entrySet()) 
 		{
 	        if (type.equals(entry.getValue())) {
 	            return entry.getKey();
@@ -442,13 +442,12 @@ class IOMessage
 
 		
 class IOMessageV10x extends IOMessage
-{
-	private String separator = "";
-	private static final Map<Integer, IOMessage.TypeMessage> messages_codes = createMapMessages(); 
-    private static final Map<Integer, IOMessage.TypeMessage> createMapMessages() 
+{	
+	@Override
+    protected Map<Integer, IOMessage.TypeMessage> createMapMessages() 
     {
 		Map<Integer, IOMessage.TypeMessage> result= new HashMap<Integer, IOMessage.TypeMessage>() ;
-		result.put(0, IOMessage.TypeMessage.TYPE_DISCONNECT);
+		result.put(0, IOMessage.TypeMessage.TYPE_DISCONNECTED);
 		result.put(1, IOMessage.TypeMessage.TYPE_CONNECTED);
 		result.put(2, IOMessage.TypeMessage.TYPE_HEARTBEAT);
 		result.put(3, IOMessage.TypeMessage.TYPE_PONG);
@@ -456,7 +455,7 @@ class IOMessageV10x extends IOMessage
 		result.put(5, IOMessage.TypeMessage.TYPE_UPGRADE);
 		result.put(6, IOMessage.TypeMessage.TYPE_NOOP);
 		result.put(40, IOMessage.TypeMessage.TYPE_CONNECT);
-		result.put(41, IOMessage.TypeMessage.TYPE_DISCONNECTED);
+		result.put(41, IOMessage.TypeMessage.TYPE_DISCONNECT);
 		result.put(42, IOMessage.TypeMessage.TYPE_EVENT);
 		result.put(43, IOMessage.TypeMessage.TYPE_ACK);
 		result.put(44, IOMessage.TypeMessage.TYPE_ERROR);
@@ -469,15 +468,19 @@ class IOMessageV10x extends IOMessage
         
     protected IOMessageV10x(TypeMessage type, String id, String namespace)
     {
-    	this.type = type;
-		this.fields[FIELD_ID] = id;
-		this.fields[FIELD_CONTROL] = "" + getControlNumber(type);
-		this.fields[FIELD_ENDPOINT] = namespace;
+    	super(type,id,namespace);
+    	///OVERWRITE
+    	separator = "";
+		this.fields[FIELD_CONTROL] = "" + this.getControlNumber(type);
+		///OVERWRITE END
     }
 	
     protected IOMessageV10x(String message)
 	{
-		//42["message","{\"type\":\"redirect\",\"url\":\"/logout\",\"rid\":\"test\",\"info\":\"Internal error: could not get csInfo.\",\"action\":\"reject\"}"]
+    	///OVERWRITE
+    	separator = "";
+    	///OVERWRITE END
+		//42["message","{\"type\":\"redirect\",\"url\":\"/logout\",\"rid\":\"test\",\"action\":\"reject\"}"]
 		int control = message.charAt(0) - '0';
 		data = message.substring(1);
 		if(messages_codes.get(control) == IOMessage.TypeMessage.TYPE_MESSAGE)
@@ -520,13 +523,7 @@ class IOMessageV10x extends IOMessage
 	
     protected int getControlNumber(TypeMessage type)
 	{
-		for (Entry<Integer, TypeMessage> entry : messages_codes.entrySet()) 
-		{
-	        if (type.equals(entry.getValue())) {
-	            return entry.getKey();
-	        }
-	    }
-		return 0;
+		return super.getControlNumber(type);
 	}
     
 	/**
@@ -534,6 +531,7 @@ class IOMessageV10x extends IOMessage
 	 * 
 	 * @return the data
 	 */
+    @Override
 	public String stringify()
 	{
 		String res = "";
@@ -560,43 +558,7 @@ class IOMessageV10x extends IOMessage
 	@Override
 	public String toString()
 	{
-		StringBuilder builder = new StringBuilder();	
-		builder.append(this.fields[FIELD_CONTROL]);
-		builder.append(this.separator);
-
-		String pIdL = this.fields[FIELD_ID];
-		if (ack == "data")
-		{
-			pIdL += "+";
-		}
-
-		// Do not write pid for acknowledgements
-		if (this.type != TypeMessage.TYPE_ACK)
-		{
-			builder.append(pIdL);
-		}
-		builder.append(this.separator);
-
-		// Add the end point for the namespace to be used, as long as it is not
-		// an ACK, heartbeat, or disconnect packet
-		if (this.type != TypeMessage.TYPE_ACK 
-				&& this.type != TypeMessage.TYPE_HEARTBEAT
-				&& this.type != TypeMessage.TYPE_DISCONNECT)
-			builder.append(this.fields[FIELD_ENDPOINT]);
-		builder.append(this.separator);
-
-		if (args.length() != 0)
-		{
-			String ackpId = "";
-			// This is an acknowledgement packet, so, prepend the ack pid to the data
-			if (this.type == TypeMessage.TYPE_ACK)
-			{
-				ackpId += pIdL+"+";
-			}
-			builder.append(ackpId);
-			builder.append(this.stringify());
-		}
-		return builder.toString();
+		return super.toString();
 	}
 	
 }
