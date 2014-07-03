@@ -8,6 +8,8 @@
  */
 package io.socket;
 
+import io.socket.IOMessage.TypeMessage;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -314,8 +316,9 @@ class IOConnection implements IOCallback {
 			return false;
 		sockets.put(namespace, socket);
 		socket.setHeaders(headers);
-		IOMessage connect = new IOMessage(IOMessage.TYPE_CONNECT,
-				socket.getNamespace(), "",this.version);
+//		IOMessage connect = new IOMessage(IOMessage.TYPE_CONNECT,
+//				socket.getNamespace(), "",this.version);
+		IOMessage connect = IOMessage.createMessage(TypeMessage.TYPE_CONNECT, "", socket.getNamespace(), this.version);
 		sendPlain(connect.toString());
 		return true;
 	}
@@ -465,7 +468,8 @@ class IOConnection implements IOCallback {
 	 * @return an {@link IOAcknowledge} instance, may be <code>null</code> if
 	 *         server doesn't request one.
 	 */
-	private IOAcknowledge remoteAcknowledge(IOMessage message) {
+	private IOAcknowledge remoteAcknowledge(IOMessage message)
+	{
 		String _id = message.getId();
 		if (_id.equals(""))
 			return null;
@@ -473,21 +477,24 @@ class IOConnection implements IOCallback {
 			_id = _id + "+";
 		final String id = _id;
 		final String endPoint = message.getEndpoint();
-		return new IOAcknowledge() {
+		return new IOAcknowledge() 
+		{
 			@Override
-			public void ack(Object... args) {
-				JSONArray array = new JSONArray();
-				for (Object o : args) {
-					try {
-						array.put(o == null ? JSONObject.NULL : o);
-					} catch (Exception e) {
-						error(new SocketIOException(
-								"You can only put values in IOAcknowledge.ack() which can be handled by JSONArray.put()",
-								e));
-					}
-				}
-				IOMessage ackMsg = new IOMessage(IOMessage.TYPE_ACK, endPoint,
-						id + array.toString(),IOConnection.this.version);
+			public void ack(Object... args) 
+			{
+//				JSONArray array = new JSONArray();
+//				for (Object o : args) {
+//					try {
+//						array.put(o == null ? JSONObject.NULL : o);
+//					} catch (Exception e) {
+//						error(new SocketIOException(
+//								"You can only put values in IOAcknowledge.ack() which can be handled by JSONArray.put()",
+//								e));
+//					}
+//				}
+				IOMessage ackMsg = IOMessage.createMessage(TypeMessage.TYPE_ACK, id, endPoint,IOConnection.this.version);
+//						new IOMessage(IOMessage.TYPE_ACK, endPoint,
+//						id + array.toString(),IOConnection.this.version);
 				sendPlain(ackMsg.toString());
 			}
 		};
@@ -571,13 +578,17 @@ class IOConnection implements IOCallback {
 	private synchronized void sendPlain(String text) 
 	{
 		if (getState() == STATE_READY)
-			try {
-				logger.info("SEND " + text);
+		{
+			try 
+			{
+				logger.info("-->SEND " + text);
 				transport.send(text);
+				
 			} catch (Exception e) {
 				logger.info("IOEx: saving");
 				outputBuffer.add(text);
 			}
+		}
 		else {
 			outputBuffer.add(text);
 		}
@@ -734,17 +745,12 @@ class IOConnection implements IOCallback {
 	 */
 	public void transportMessage(String text)
 	{
-		logger.info("Received: " + text);
-		IOMessage message;
-		try {
-			message = new IOMessage(text,this.version);
-		} catch (Exception e) {
-			error(new SocketIOException("Garbage from server: " + text, e));
-			return;
-		}
+		logger.info("<--RCV: " + text);
+		IOMessage message = IOMessage.parseMessage(text, version);
 		resetTimeout();
+		
 		switch (message.getType()) {
-		case IOMessage.TYPE_DISCONNECT:
+		case TYPE_DISCONNECT:
 			try {
 				findCallback(message).onDisconnect();
 			} catch (Exception e) {
@@ -752,16 +758,14 @@ class IOConnection implements IOCallback {
 						"Exception was thrown in onDisconnect()", e));
 			}
 			break;
-		case IOMessage.TYPE_CONNECT:
+		case TYPE_CONNECT:
 			try {
 				if (firstSocket != null && "".equals(message.getEndpoint())) 
 				{
 					if (firstSocket.getNamespace().equals("")) {
 						firstSocket.getCallback().onConnect();
 					} else {
-						IOMessage connect = new IOMessage(
-								IOMessage.TYPE_CONNECT,
-								firstSocket.getNamespace(), "",this.version);
+						IOMessage connect = IOMessage.createMessage(TypeMessage.TYPE_CONNECT,"",firstSocket.getNamespace(),this.version);
 						sendPlain(connect.toString());
 					}
 				} else {
@@ -773,7 +777,7 @@ class IOConnection implements IOCallback {
 						"Exception was thrown in onConnect()", e));
 			}
 			break;
-		case IOMessage.TYPE_HEARTBEAT:
+		case TYPE_HEARTBEAT:
 		{
 			switch (this.version)
 			{
@@ -785,7 +789,7 @@ class IOConnection implements IOCallback {
 					break;
 			}			
 		}break;
-		case IOMessage.TYPE_PONG:
+		case TYPE_PONG:
 		{
 			switch (this.version)
 			{
@@ -798,7 +802,7 @@ class IOConnection implements IOCallback {
 					break;
 			}			
 		}break;
-		case IOMessage.TYPE_MESSAGE:
+		case TYPE_MESSAGE:
 			try
 			{
 				findCallback(message).onMessage(message.getData(),
@@ -809,7 +813,7 @@ class IOConnection implements IOCallback {
 								+ "Message was: " + message.toString(), e));
 			}
 			break;
-		case IOMessage.TYPE_JSON_MESSAGE:
+		case TYPE_JSON_MESSAGE:
 			try 
 			{
 				JSONObject obj = null;
@@ -828,38 +832,28 @@ class IOConnection implements IOCallback {
 				logger.warning("Malformated JSON received");
 			}
 			break;
-		case IOMessage.TYPE_EVENT:
+		case TYPE_EVENT:
 		{
+			
 			try {
-				JSONObject event = new JSONObject(message.getData());
-//				logger.info("Data to Parse: "+event.toString());
-				Object[] argsArray;
-				if (event.has("args"))
-				{
-					JSONArray args = event.getJSONArray("args");
-					argsArray = new Object[args.length()];
-					for (int i = 0; i < args.length(); i++)
-					{
-						if (args.isNull(i) == false)
-							argsArray[i] = args.get(i);
-					}
-				} else
-					argsArray = new Object[0];
-				String eventName = event.getString("name");
-				try {
-					findCallback(message).on(eventName,
-							remoteAcknowledge(message), argsArray);
-				} catch (Exception e) {
-					error(new SocketIOException(
-							"Exception was thrown in on(String, JSONObject[]).\n"
-									+ "Message was: " + message.toString(), e));
-				}
-			} catch (JSONException e) {
-				logger.warning("Malformated JSON received");
-			}				
+				findCallback(message).on(message.getEvent(),
+						remoteAcknowledge(message), message.getArgs());
+			} catch (Exception e) {
+				error(new SocketIOException(
+						"Exception was thrown in on(String, JSONObject[]).\n"
+								+ "Message was: " + message.toString(), e));
+			}
+//			try {
+//				findCallback(message).on(message.getEvent(),
+//						remoteAcknowledge(message), argsArray);
+//			} catch (Exception e) {
+//				error(new SocketIOException(
+//						"Exception was thrown in on(String, JSONObject[]).\n"
+//								+ "Message was: " + message.toString(), e));
+//			}			
 		}	break;
 
-		case IOMessage.TYPE_ACK:
+		case TYPE_ACK:
 			String[] data = message.getData().split("\\+", 2);
 			if (data.length == 2) {
 				try {
@@ -892,7 +886,7 @@ class IOConnection implements IOCallback {
 				}					
 			}
 			break;
-		case IOMessage.TYPE_ERROR:
+		case TYPE_ERROR:
 			try {
 				findCallback(message).onError(
 						new SocketIOException(message.getData()));
@@ -904,7 +898,11 @@ class IOConnection implements IOCallback {
 				cleanup();
 			}
 			break;
-		case IOMessage.TYPE_NOOP:
+		case TYPE_NOOP:
+			break;
+		case TYPE_DISCONNECTED:
+			break;
+		case TYPE_CONNECTED:
 			break;
 		default:
 			logger.warning("Unkown type received: " + message.getType());
@@ -947,15 +945,15 @@ class IOConnection implements IOCallback {
 		return this.version;
 	}
 	/**
-	 * Returns the version. This should be called from a {@link IOTransport}
+	 * Force the connection to wait to get connected
 	 * 
-	 * @return the version used (and null if not received yet)
+	 * @return state of connection
 	 */
 	public boolean canSend()
 	{
 		long startTime = System.nanoTime(); 
 		long elapsedTime = System.nanoTime() - startTime;
-		while(!isConnected() && elapsedTime < 1000000)
+		while(!isConnected() && elapsedTime < 5000000)
 		{
 			try 
 			{
@@ -989,20 +987,11 @@ class IOConnection implements IOCallback {
 		}
 		if(this.version == VersionSocketIO.V10x )
 		{
-			try 
-			{
-				text = text.replaceAll("\\\\\"", "\"");
-				JSONObject data = null;
-				data = new JSONObject(text);
-				this.send(socket, ack, data);				
-			}catch (JSONException e) 
-			{
-				logger.warning("Malformed JSON text (In V1.0.x only JSON can be sent)");
-			}
+			this.emit(socket, "message", ack, text);
 		}
 		else
 		{
-			IOMessage message = new IOMessage(IOMessage.TYPE_MESSAGE,socket.getNamespace(),text,this.version);
+			IOMessage message = IOMessage.createMessage(TypeMessage.TYPE_MESSAGE,"",socket.getNamespace(),text,this.version);
 			synthesizeAck(message, ack);
 			sendPlain(message.toString());
 		}		
@@ -1025,24 +1014,16 @@ class IOConnection implements IOCallback {
 			logger.warning("An error occured to send your message");
 			return;
 		}
-		IOMessage message;
-		switch (this.version) 
+		if(this.version == VersionSocketIO.V10x )
 		{
-		case V09x:
-			message = new IOMessage(IOMessage.TYPE_JSON_MESSAGE,
-					socket.getNamespace(),json.toString(),this.version);
-			break;
-		case V10x:
-			message = new IOMessage(IOMessage.TYPE_JSON_MESSAGE,
-					socket.getNamespace(),json.toString().replaceAll("\"", "\\\\\""),this.version);
-			break;
-		default:
-			message = new IOMessage(IOMessage.TYPE_JSON_MESSAGE,
-					socket.getNamespace(),json.toString(),this.version);
-			break;
-		}		
-		synthesizeAck(message, ack);
-		sendPlain(message.toString());
+			this.emit(socket, "message", ack, json.toString());
+		}
+		else
+		{
+			IOMessage message = IOMessage.createMessage(TypeMessage.TYPE_JSON_MESSAGE,"",socket.getNamespace(),json.toString(),this.version);
+			synthesizeAck(message, ack);
+			sendPlain(message.toString());
+		}	
 	}
 
 	/**
@@ -1065,17 +1046,15 @@ class IOConnection implements IOCallback {
 			logger.warning("An error occured to send your message");
 			return;
 		}
-		try {
-			JSONObject json = new JSONObject().put("name", event).put("args",
-					new JSONArray(Arrays.asList(args)));
-			IOMessage message = new IOMessage(IOMessage.TYPE_EVENT,
-					socket.getNamespace(), json.toString(),this.version);
-			synthesizeAck(message, ack);
-			sendPlain(message.toString());
-		} catch (JSONException e) {
-			error(new SocketIOException(
-					"Error while emitting an event. Make sure you only try to send arguments, which can be serialized into JSON."));
+		IOMessage message = IOMessage.createMessage(TypeMessage.TYPE_EVENT,"",
+				socket.getNamespace(),this.version);
+		message.setEvent(event);
+		for (Object i : args)
+		{
+			message.addData(i);
 		}
+		synthesizeAck(message, ack);
+		sendPlain(message.toString());
 	}
 
 	/**

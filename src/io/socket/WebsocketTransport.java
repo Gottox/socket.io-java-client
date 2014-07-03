@@ -1,14 +1,11 @@
 package io.socket;
 
-import io.socket.IOConnection.VersionSocketIO;
-
 import java.io.IOException;
 import java.net.URI;
 import java.net.URL;
 import java.util.regex.Pattern;
 
 import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSocketFactory;
 
 import org.java_websocket.client.DefaultSSLWebSocketClientFactory;
 import org.java_websocket.client.WebSocketClient;
