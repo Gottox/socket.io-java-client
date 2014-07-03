@@ -184,16 +184,7 @@ class IOConnection implements IOCallback {
 			connectTransport();
 			if (!keepAliveInQueue) 
 			{
-				switch (IOConnection.this.version)
-				{
-					case V09x:
-						sendPlain("2::");
-						
-						break;
-					case V10x:
-						sendPlain("2");
-						break;
-				}	
+				sendPlain(IOMessage.createMessage(TypeMessage.TYPE_HEARTBEAT,"","", version).toString());
 				keepAliveInQueue = true;				
 			}
 		}
@@ -217,15 +208,7 @@ class IOConnection implements IOCallback {
 		{
 			if (IOConnection.this.getState() == STATE_READY) 
 			{
-				switch (IOConnection.this.version)
-				{
-				case V09x:
-					sendPlain("2::");					
-					break;
-				case V10x:
-					sendPlain("2");
-					break;
-				}			
+				sendPlain(IOMessage.createMessage(TypeMessage.TYPE_HEARTBEAT,"","", version).toString());		
 			}
 		}
 	}
@@ -331,16 +314,8 @@ class IOConnection implements IOCallback {
 	 *            the socket to be shut down
 	 */
 	public synchronized void unregister(SocketIO socket)
-	{
-		switch (this.version)
-		{
-			case V09x:
-				sendPlain("0::" + socket.getNamespace());				
-				break;
-			case V10x:
-				sendPlain("0"+ socket.getNamespace());
-				break;
-		}			
+	{		
+		sendPlain(IOMessage.createMessage(TypeMessage.TYPE_DISCONNECT, "", socket.getNamespace(), version).toString());
 		sockets.remove(socket.getNamespace());
 		socket.getCallback().onDisconnect();
 
@@ -791,16 +766,13 @@ class IOConnection implements IOCallback {
 		}break;
 		case TYPE_PONG:
 		{
-			switch (this.version)
+			if(message.getData() == "probe")
 			{
-				case V09x:
-					//Doesn't exist
-					break;
-				case V10x:
-					if("probe".equals(message.getData()))
-						sendPlain("5"+message.getData());
-					break;
-			}			
+				sendPlain(IOMessage.createMessage(
+						TypeMessage.TYPE_UPGRADE,
+						"","probe", 
+						message.getEndpoint(), version).toString());
+			}						
 		}break;
 		case TYPE_MESSAGE:
 			try
