@@ -8,9 +8,7 @@
  */
 package io.socket;
 
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Logger;
@@ -18,10 +16,6 @@ import java.util.logging.Logger;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import com.sun.xml.internal.ws.policy.privateutil.PolicyUtils.Collections;
-
-import io.socket.IOConnection.VersionSocketIO;
 
 /**
  * The Class IOMessage.
