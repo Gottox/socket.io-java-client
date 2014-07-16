@@ -218,12 +218,7 @@ class IOMessage
 		this.fields[FIELD_ENDPOINT] = fields[FIELD_ENDPOINT];
 		this.fields[FIELD_ID] = fields[FIELD_ID];
 		this.type = messages_codes.get(Integer.parseInt(this.fields[FIELD_CONTROL]));
-		if(this.type == TypeMessage.TYPE_MESSAGE)
-		{
-			args.put(data);
-			data = fields[FIELD_DATA];
-		}
-		else if(this.type == TypeMessage.TYPE_EVENT)
+		if(this.type == TypeMessage.TYPE_EVENT)
 		{
 			data = fields[FIELD_DATA];
 			try 
@@ -238,7 +233,12 @@ class IOMessage
 			} catch (JSONException e) {
 				logger.warning("Malformated JSON received");
 			}	
-		}	
+		}
+		else
+		{
+			data = fields[FIELD_DATA];
+			args.put(data);
+		}
 	}
 	
 	/**
