@@ -6,7 +6,6 @@ import java.net.URL;
 import java.util.regex.Pattern;
 
 import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSocketFactory;
 
 import org.java_websocket.client.DefaultSSLWebSocketClientFactory;
 import org.java_websocket.client.WebSocketClient;
@@ -16,11 +15,21 @@ class WebsocketTransport extends WebSocketClient implements IOTransport {
     private final static Pattern PATTERN_HTTP = Pattern.compile("^http");
     public static final String TRANSPORT_NAME = "websocket";
     private IOConnection connection;
-    public static IOTransport create(URL url, IOConnection connection) {
+    public static IOTransport create(URL url, IOConnection connection, IOConnection.VersionSocketIO version)
+    {
+    	String versionAddon = "";
+    	switch (version)
+    	{
+			case V10x:
+				versionAddon = "?EIO=2&transport=websocket&";
+				break;
+			default:
+				break;
+		}
         URI uri = URI.create(
                 PATTERN_HTTP.matcher(url.toString()).replaceFirst("ws")
                 + IOConnection.SOCKET_IO_1 + TRANSPORT_NAME
-                + "/" + connection.getSessionId());
+                + "/" + versionAddon + connection.getSessionId());
 
         return new WebsocketTransport(uri, connection);
     }
@@ -77,13 +86,17 @@ class WebsocketTransport extends WebSocketClient implements IOTransport {
     }
 
     @Override
-    public void onMessage(String text) {
+    public void onMessage(String text)
+    {
+    	
         if(connection != null)
             connection.transportMessage(text);
     }
 
     @Override
-    public void onOpen(ServerHandshake handshakedata) {
+    public void onOpen(ServerHandshake handshakedata)
+    {
+    	this.send("5");
         if(connection != null)
             connection.transportConnected();
     }

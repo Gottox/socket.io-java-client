@@ -13,7 +13,6 @@ import java.net.URL;
 import java.util.Properties;
 
 import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSocketFactory;
 
 import org.json.JSONObject;
 
@@ -42,7 +41,8 @@ public class SocketIO {
 	 * {@link #connect(String, IOCallback)}
 	 */
 	public SocketIO() {
-
+		this.addHeader("Accept", "*/*");
+		this.addHeader("Content Type", "text/plain");
 	}
 
 	/**
@@ -57,6 +57,8 @@ public class SocketIO {
 	public SocketIO(final String url) throws MalformedURLException {
 		if (url == null)
 			throw new RuntimeException("url may not be null.");
+		this.addHeader("Accept", "*/*");
+		this.addHeader("Content Type", "text/plain");
 		setAndConnect(new URL(url), null);
 	}
 
@@ -79,6 +81,11 @@ public class SocketIO {
 
 		if (headers != null)
 			this.headers = headers;
+		else
+		{
+			this.addHeader("Accept", "*/*");
+			this.addHeader("Content Type", "text/plain");
+		}
 
 		setAndConnect(new URL(url), null);
 	}
@@ -143,7 +150,8 @@ public class SocketIO {
 	 */
 	public void connect(final String url, final IOCallback callback)
 			throws MalformedURLException {
-		if (setAndConnect(new URL(url), callback) == false) {
+		if (setAndConnect(new URL(url), callback) == false)
+		{
 			if (url == null || callback == null)
 				throw new RuntimeException("url and callback may not be null.");
 			else
@@ -278,7 +286,8 @@ public class SocketIO {
 	 * @param json
 	 *            the JSON object
 	 */
-	public void send(final JSONObject json) {
+	public void send(final JSONObject json)
+	{
 		this.connection.send(this, null, json);
 	}
 
