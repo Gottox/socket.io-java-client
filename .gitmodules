@@ -1,0 +1,3 @@
+[submodule "libs/Java-WebSocket"]
+	path = libs/Java-WebSocket
+	url = https://github.com/TooTallNate/Java-WebSocket

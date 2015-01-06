@@ -1,14 +1,13 @@
 package io.socket;
 
 import java.io.IOException;
+import java.net.Socket;
 import java.net.URI;
 import java.net.URL;
 import java.util.regex.Pattern;
 
 import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSocketFactory;
 
-import org.java_websocket.client.DefaultSSLWebSocketClientFactory;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
 
@@ -30,7 +29,15 @@ class WebsocketTransport extends WebSocketClient implements IOTransport {
         this.connection = connection;
         SSLContext context = IOConnection.getSslContext();
         if("wss".equals(uri.getScheme()) && context != null) {
-	        this.setWebSocketFactory(new DefaultSSLWebSocketClientFactory(context));
+        	try {
+				int port = uri.getPort() < 0 ? 443 : uri.getPort();
+				
+				Socket socket = context.getSocketFactory().createSocket(uri.getHost(), port);
+				
+				this.setSocket(socket);
+			} catch (Exception e) {
+				throw new RuntimeException(e);
+			}
         }
     }
 
@@ -46,6 +53,13 @@ class WebsocketTransport extends WebSocketClient implements IOTransport {
         }
     }
 
+    
+    @Override
+    public void connect() {
+    	IOConnection.logger.info("Connecting to " + getURI());
+    	
+    	super.connect();
+    }
     /* (non-Javadoc)
      * @see io.socket.IOTransport#canSendBulk()
      */
@@ -72,8 +86,11 @@ class WebsocketTransport extends WebSocketClient implements IOTransport {
 
     @Override
     public void onClose(int code, String reason, boolean remote) {
-        if(connection != null)
+        if(connection != null) {
+        	IOConnection.logger.info("Closed [code=" + code + ", reason=" + reason + ", remote=" + remote + "]");
+        	
             connection.transportDisconnected();
+        }
     }
 
     @Override
@@ -96,6 +113,6 @@ class WebsocketTransport extends WebSocketClient implements IOTransport {
     @Override
     public void onError(Exception ex) {
         // TODO Auto-generated method stub
-
+    	ex.printStackTrace();
     }
 }
