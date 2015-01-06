@@ -53,6 +53,13 @@ class WebsocketTransport extends WebSocketClient implements IOTransport {
         }
     }
 
+    
+    @Override
+    public void connect() {
+    	IOConnection.logger.info("Connecting to " + getURI());
+    	
+    	super.connect();
+    }
     /* (non-Javadoc)
      * @see io.socket.IOTransport#canSendBulk()
      */
@@ -79,8 +86,11 @@ class WebsocketTransport extends WebSocketClient implements IOTransport {
 
     @Override
     public void onClose(int code, String reason, boolean remote) {
-        if(connection != null)
+        if(connection != null) {
+        	IOConnection.logger.info("Closed [code=" + code + ", reason=" + reason + ", remote=" + remote + "]");
+        	
             connection.transportDisconnected();
+        }
     }
 
     @Override
@@ -103,6 +113,6 @@ class WebsocketTransport extends WebSocketClient implements IOTransport {
     @Override
     public void onError(Exception ex) {
         // TODO Auto-generated method stub
-
+    	ex.printStackTrace();
     }
 }

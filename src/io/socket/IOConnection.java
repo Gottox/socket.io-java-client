@@ -25,9 +25,9 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.logging.Logger;
+
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSocketFactory;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -296,6 +296,9 @@ class IOConnection implements IOCallback {
 		try {
 			setState(STATE_HANDSHAKE);
 			url = new URL(IOConnection.this.url.toString() + SOCKET_IO_1);
+			
+			logger.info("Handshake > " + url);
+			
 			connection = url.openConnection();
 			if (connection instanceof HttpsURLConnection) {
 				((HttpsURLConnection) connection)
@@ -314,6 +317,8 @@ class IOConnection implements IOCallback {
 			Scanner in = new Scanner(stream);
 			response = in.nextLine();
 			String[] data = response.split(":");
+			logger.info("Handshake < " + Arrays.asList(data));
+			
 			sessionId = data[0];
 			heartbeatTimeout = Long.parseLong(data[1]) * 1000;
 			closingTimeout = Long.parseLong(data[2]) * 1000;
@@ -339,6 +344,9 @@ class IOConnection implements IOCallback {
 					"Server supports no available transports. You should reconfigure the server to support a available transport"));
 			return;
 		}
+		
+		logger.info("Connecting via " + transport);
+		
 		transport.connect();
 	}
 
@@ -568,6 +576,7 @@ class IOConnection implements IOCallback {
 	 */
 	public void transportError(Exception error) {
 		this.lastException = error;
+		logger.warning("Error: " + error);
 		setState(STATE_INTERRUPTED);
 		reconnect();
 	}
@@ -757,6 +766,8 @@ class IOConnection implements IOCallback {
 	 */
 	public synchronized void reconnect() {
 		if (getState() != STATE_INVALID) {
+			logger.info("Reconnecting...");
+			
 			invalidateTransport();
 			setState(STATE_INTERRUPTED);
 			if (reconnectTask != null) {
