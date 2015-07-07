@@ -3,12 +3,14 @@ package io.socket;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URL;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
 import java.util.regex.Pattern;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocketFactory;
 
-import org.java_websocket.client.DefaultSSLWebSocketClientFactory;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
 
@@ -25,14 +27,21 @@ class WebsocketTransport extends WebSocketClient implements IOTransport {
         return new WebsocketTransport(uri, connection);
     }
 
-    public WebsocketTransport(URI uri, IOConnection connection) {
-        super(uri);
-        this.connection = connection;
-        SSLContext context = IOConnection.getSslContext();
-        if("wss".equals(uri.getScheme()) && context != null) {
-	        this.setWebSocketFactory(new DefaultSSLWebSocketClientFactory(context));
-        }
-    }
+	public WebsocketTransport(URI uri, IOConnection connection) {
+		super(uri);
+		this.connection = connection;
+		SSLContext context = null;
+		try {
+			context = SSLContext.getInstance("TLS", "HarmonyJSSE");
+			context.init(null, null, null);
+			if ("wss".equals(uri.getScheme())) {
+				this.setSocket(SSLSocketFactory.getDefault().createSocket());
+			}
+		} catch (NoSuchAlgorithmException | NoSuchProviderException
+				| KeyManagementException | IOException e) {
+			e.printStackTrace();
+		}
+	}
 
     /* (non-Javadoc)
      * @see io.socket.IOTransport#disconnect()
