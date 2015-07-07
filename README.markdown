@@ -2,11 +2,9 @@
 
 # Socket.IO-Client for Java
 
-socket.io-java-client is an easy to use implementation of [socket.io](http://socket.io) for Java.
+socket.io-java-client is an easy to use implementation of [socket.io](http://socket.io) v0.x for Java.
 
-It uses [Weberknecht](http://code.google.com/p/weberknecht/) as transport backend, but it's easy
-to write your own transport. See description below. An XHR-Transport is included, too. But it's
-not functional in its current state.
+It uses [Java-WebSocket](http://java-websocket.org) as transport backend, but it's easy to write your own transport. See description below. An XHR-Transport is included, too. But it's not functional in its current state.
 
 The API is inspired by [java-socket.io.client](https://github.com/benkay/java-socket.io.client).
 
@@ -78,16 +76,25 @@ Afterwards, you'll be able to use this library:
 			}
 		});
 		
-		// This line is cached until the connection is establisched.
+		// This line is cached until the connection is established.
 		socket.send("Hello Server!");
 
 ```
 
+To use secure connections just setup the connection like this:
+
+``` java
+		// Pass your SSLContext, in this case we'll use default
+		SocketIO.setDefaultSSLSocketFactory(SSLContext.getDefault());
+		// Add optional headers
+		final Properties properties = new Properties();
+		properties.setProperty("Property name", "property value");
+		// Connect using HTTPS
+		socket = new SocketIO("https://127.0.0.1:3001/", properties);
+```
+
 For further informations, read the [Javadoc](http://s01.de/hgexport/socket.io-java-client/).
 
- * [Class SocketIO](http://s01.de/~tox/socket.io-java-client/io/socket/SocketIO.html)
- * [Interface IOCallback](http://s01.de/~tox/socket.io-java-client/io/socket/IOCallback.html)
- 
 ## Checkout
 
  * with git
