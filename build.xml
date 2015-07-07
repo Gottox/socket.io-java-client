@@ -9,8 +9,8 @@
     <property name="ECLIPSE_HOME" value="../../../../../Applications/eclipse"/>
     <property name="junit.output.dir" value="junit"/>
     <property name="debuglevel" value="source,lines,vars"/>
-    <property name="target" value="1.6"/>
-    <property name="source" value="1.6"/>
+    <property name="target" value="1.7"/>
+    <property name="source" value="1.7"/>
     <path id="JUnit 4.libraryclasspath">
         <pathelement location="${ECLIPSE_HOME}/plugins/org.junit_4.8.2.v4_8_2_v20110321-1705/junit.jar"/>
         <pathelement location="${ECLIPSE_HOME}/plugins/org.hamcrest.core_1.1.0.v20090501071000.jar"/>
@@ -18,7 +18,7 @@
     <path id="socket.io-java-client.classpath">
         <pathelement location="bin"/>
         <pathelement location="libs/json-org.jar"/>
-        <pathelement location="libs/WebSocket.jar"/>
+        <pathelement location="libs/java_websocket.jar"/>
         <path refid="JUnit 4.libraryclasspath"/>
     </path>
     <target name="init">
