@@ -3,10 +3,11 @@ package io.socket;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URL;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.regex.Pattern;
 
 import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSocketFactory;
 
 import org.java_websocket.client.DefaultSSLWebSocketClientFactory;
 import org.java_websocket.client.WebSocketClient;
@@ -16,6 +17,7 @@ class WebsocketTransport extends WebSocketClient implements IOTransport {
     private final static Pattern PATTERN_HTTP = Pattern.compile("^http");
     public static final String TRANSPORT_NAME = "websocket";
     private IOConnection connection;
+    private ExecutorService exec;
     public static IOTransport create(URL url, IOConnection connection) {
         URI uri = URI.create(
                 PATTERN_HTTP.matcher(url.toString()).replaceFirst("ws")
@@ -30,7 +32,8 @@ class WebsocketTransport extends WebSocketClient implements IOTransport {
         this.connection = connection;
         SSLContext context = IOConnection.getSslContext();
         if("wss".equals(uri.getScheme()) && context != null) {
-	        this.setWebSocketFactory(new DefaultSSLWebSocketClientFactory(context));
+            exec = Executors.newSingleThreadScheduledExecutor();
+            this.setWebSocketFactory(new DefaultSSLWebSocketClientFactory(context, exec));
         }
     }
 
@@ -39,6 +42,10 @@ class WebsocketTransport extends WebSocketClient implements IOTransport {
      */
     @Override
     public void disconnect() {
+        if (exec != null) {
+            exec.shutdownNow();
+            exec = null;
+        }
         try {
             this.close();
         } catch (Exception e) {
@@ -96,6 +103,5 @@ class WebsocketTransport extends WebSocketClient implements IOTransport {
     @Override
     public void onError(Exception ex) {
         // TODO Auto-generated method stub
-
     }
 }
