@@ -1,2 +1,4 @@
 bin/
 jar/
+/target/
+/.DS_Store
