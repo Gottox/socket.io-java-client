@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>socket.io-java-client</groupId>
   <artifactId>socket.io-java-client</artifactId>
-  <version>0.1.0</version>
+  <version>1.0.0</version>
   <build>
     <sourceDirectory>src</sourceDirectory>
     <testSourceDirectory>tests</testSourceDirectory>
