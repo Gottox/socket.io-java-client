@@ -25,9 +25,9 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.logging.Logger;
+
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSocketFactory;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -37,6 +37,7 @@ import org.json.JSONObject;
  * The Class IOConnection.
  */
 class IOConnection implements IOCallback {
+	
 	/** Debug logger */
 	static final Logger logger = Logger.getLogger("io.socket");
 
@@ -431,7 +432,6 @@ class IOConnection implements IOCallback {
 			else
 				connections.remove(urlStr);
 		}
-		logger.info("Cleanup");
 		backgroundTimer.cancel();
 	}
 
@@ -457,10 +457,8 @@ class IOConnection implements IOCallback {
 	private synchronized void sendPlain(String text) {
 		if (getState() == STATE_READY)
 			try {
-				logger.info("> " + text);
 				transport.send(text);
 			} catch (Exception e) {
-				logger.info("IOEx: saving");
 				outputBuffer.add(text);
 			}
 		else {
@@ -527,15 +525,8 @@ class IOConnection implements IOCallback {
 			ConcurrentLinkedQueue<String> outputBuffer = this.outputBuffer;
 			this.outputBuffer = new ConcurrentLinkedQueue<String>();
 			try {
-				// DEBUG
 				String[] texts = outputBuffer.toArray(new String[outputBuffer
 						.size()]);
-				logger.info("Bulk start:");
-				for (String text : texts) {
-					logger.info("> " + text);
-				}
-				logger.info("Bulk end");
-				// DEBUG END
 				transport.sendBulk(texts);
 			} catch (IOException e) {
 				this.outputBuffer = outputBuffer;
@@ -610,7 +601,6 @@ class IOConnection implements IOCallback {
 	 *            the text
 	 */
 	public void transportMessage(String text) {
-		logger.info("< " + text);
 		IOMessage message;
 		try {
 			message = new IOMessage(text);

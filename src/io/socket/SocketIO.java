@@ -13,7 +13,6 @@ import java.net.URL;
 import java.util.Properties;
 
 import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSocketFactory;
 
 import org.json.JSONObject;
 

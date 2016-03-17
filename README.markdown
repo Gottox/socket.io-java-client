@@ -1,3 +1,10 @@
+I forked this from "Gottox/socket.io-java-client":
+The only thing I did is to **mavenize the whole project** and get rid of the lib folder.
+
+So all other stuff was not touched.
+
+---
+
 [![Flattr this git repo](http://api.flattr.com/button/flattr-badge-large.png)](https://flattr.com/submit/auto?user_id=Gottox&url=https://github.com/Gottox/socket.io-java-client&title=socket.io-java-client&language=&tags=github&category=software)
 
 # Socket.IO-Client for Java
